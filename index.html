@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INOVAMED — Escalas Médicas</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏥</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<style>
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  html{font-size:14px}
+  body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:#0B1120;color:#E2E8F0;min-height:100vh}
+  ::-webkit-scrollbar{width:6px;height:6px}
+  ::-webkit-scrollbar-track{background:rgba(255,255,255,0.03)}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:3px}
+  input,select,textarea,button{font-family:inherit}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+  @keyframes slideIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .fade-in{animation:fadeIn .3s ease-out}
+  .slide-in{animation:slideIn .25s ease-out}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const{useState,useEffect,useRef,useMemo}=React;
+
+const CIDADES_COLORS={
+  "SANTO ESTEVÃO":{bg:"#2563EB"},
+  "COITÉ":{bg:"#7C3AED"},
+  "SERRA PRETA":{bg:"#059669"},
+  "BARROCAS":{bg:"#D97706"},
+  "SERRINHA":{bg:"#DC2626"},
+  "CONCEIÇÃO DA FEIRA":{bg:"#0891B2"},
+};
+
+const INITIAL_DATA={
+  "2026-03":{label:"MAR 2026",schedule:{
+    2:[{c:"SANTO ESTEVÃO",m:"Brenda Leite"},{c:"COITÉ",m:"Fabricia"}],
+    3:[{c:"SANTO ESTEVÃO",m:"Gustavo Oliveira"},{c:"COITÉ",m:"Fabricia"},{c:"CONCEIÇÃO DA FEIRA",m:"Marianna Pires"}],
+    4:[{c:"COITÉ",m:"Fabricia"},{c:"CONCEIÇÃO DA FEIRA",m:"Aline Mangabeira"}],
+    6:[{c:"COITÉ",m:"Victor Porto"}],7:[{c:"COITÉ",m:"Victor Porto"}],
+    10:[{c:"SERRA PRETA",m:"Mariana Pires"}],
+    11:[{c:"SANTO ESTEVÃO",m:"Lucas Portela"}],12:[{c:"SANTO ESTEVÃO",m:"Lucas Portela"}],13:[{c:"SANTO ESTEVÃO",m:"Lucas Portela"}],
+    14:[{c:"COITÉ",m:"Mariana Majadas"}],
+    17:[{c:"COITÉ",m:"Gustavo Oliveira"},{c:"SERRINHA",m:"Marcelo Queiroz"}],
+    18:[{c:"SANTO ESTEVÃO",m:"Aline Mangabeira"},{c:"SERRINHA",m:"Marcelo Queiroz"}],
+    19:[{c:"SERRINHA",m:"Lais Muhana"}],
+    20:[{c:"BARROCAS",m:"Victor Porto"},{c:"SERRINHA",m:"Lais Muhana"}],
+    21:[{c:"COITÉ",m:"Lais Muhana"},{c:"SERRA PRETA",m:"Mariana Majadas"},{c:"BARROCAS",m:"Victor Porto"}],
+    24:[{c:"SERRA PRETA",m:"Mariana Pires"},{c:"SERRINHA",m:"Gustavo"}],
+    25:[{c:"SANTO ESTEVÃO",m:"Vitoria Castro"}],
+    27:[{c:"SERRINHA",m:"Vanessa Oliveira"},{c:"CONCEIÇÃO DA FEIRA",m:"Raisa Carneiro"}],
+    28:[{c:"COITÉ",m:"Jessica"}],
+    29:[{c:"SANTO ESTEVÃO",m:"Brenda Leite"}],30:[{c:"SANTO ESTEVÃO",m:"Marianna Pires"}],
+    31:[{c:"SERRINHA",m:"Gustavo"}],
+  }},
+  "2026-04":{label:"ABR 2026",schedule:{
+    1:[{c:"SERRINHA",m:"Aline Mangabeira"}],
+    3:[{c:"COITÉ",m:"Victor Porto"}],4:[{c:"COITÉ",m:"Victor Porto"}],
+    6:[{c:"COITÉ",m:"Fabricia"}],
+    7:[{c:"COITÉ",m:"Fabricia"},{c:"SERRA PRETA",m:"Mariana Majadas"},{c:"SERRINHA",m:"Gustavo Santos"}],
+    8:[{c:"COITÉ",m:"Fabricia"}],
+    9:[{c:"SANTO ESTEVÃO",m:"Lucas Portela"},{c:"SERRA PRETA",m:"Eduardo Pires"},{c:"BARROCAS",m:"Marcelo Queiroz"},{c:"SERRINHA",m:"Lucas Portela"}],
+    10:[{c:"SANTO ESTEVÃO",m:"Lucas Portela"},{c:"BARROCAS",m:"Marcelo Queiroz"},{c:"SERRINHA",m:"Vanessa Oliveira"}],
+    13:[{c:"SANTO ESTEVÃO",m:"Brenda Leite"}],14:[{c:"SERRINHA",m:"Gustavo Santos"}],
+    15:[{c:"SANTO ESTEVÃO",m:"Aline Mangabeira"}],
+    16:[{c:"BARROCAS",m:"Victor Porto"}],17:[{c:"BARROCAS",m:"Victor Porto"},{c:"SERRINHA",m:"Lais Muhana"}],
+    18:[{c:"COITÉ",m:"Lais Muhana"}],
+    22:[{c:"SANTO ESTEVÃO",m:"Vitoria Castro"}],
+    23:[{c:"SERRA PRETA",m:"Eduardo Pires"},{c:"SERRINHA",m:"Lucas Portela"}],
+    24:[{c:"SERRINHA",m:"Lucas Portela"},{c:"CONCEIÇÃO DA FEIRA",m:"Raisa Carneiro"}],
+    25:[{c:"COITÉ",m:"Lucas Portela"}],28:[{c:"COITÉ",m:"Mariana Majadas"}],
+    29:[{c:"SANTO ESTEVÃO",m:"Aline Mangabeira"}],
+  }}
+};
+
+const WEEKDAYS=["DOM","SEG","TER","QUA","QUI","SEX","SÁB"];
+const MN=["","JAN","FEV","MAR","ABR","MAI","JUN","JUL","AGO","SET","OUT","NOV","DEZ"];
+const getDays=(y,m)=>new Date(y,m,0).getDate();
+const getFirst=(y,m)=>new Date(y,m-1,1).getDay();
+const parseKey=k=>{const[y,m]=k.split("-").map(Number);return{year:y,month:m}};
+const makeKey=(y,m)=>`${y}-${String(m).padStart(2,"0")}`;
+const clone=o=>JSON.parse(JSON.stringify(o));
+
+// ---- Small Components ----
+function Pill({cidade,small}){
+  const c=CIDADES_COLORS[cidade]||{bg:"#666"};
+  return <span style={{display:"inline-block",padding:small?"2px 6px":"3px 10px",borderRadius:6,fontSize:small?8:10,fontWeight:700,background:c.bg,color:"#FFF",whiteSpace:"nowrap",letterSpacing:".3px"}}>{small&&cidade.length>13?cidade.slice(0,12)+"…":cidade}</span>;
+}
+
+function Badge({count}){
+  const bg=count>=3?"#EF4444":count===2?"#FBBF24":"#22C55E";
+  const color=count===2?"#0F172A":"#FFF";
+  return <span style={{fontSize:9,fontWeight:800,color,background:bg,borderRadius:6,padding:"2px 6px",lineHeight:1,animation:count>=3?"pulse 2s infinite":"none"}}>{count>=3?`⚠ ${count}`:count}</span>;
+}
+
+// ---- Calendar ----
+function CalendarView({monthKey,data,selectedDay,onDayClick,filterCidade,filterMedico}){
+  const{year,month}=parseKey(monthKey);
+  const days=getDays(year,month);
+  const first=getFirst(year,month);
+  const sch=data.schedule||{};
+
+  const cells=[];
+  for(let i=0;i<first;i++)cells.push(null);
+  for(let d=1;d<=days;d++)cells.push(d);
+  while(cells.length%7)cells.push(null);
+
+  const getItems=d=>{
+    if(!d||!sch[d])return[];
+    let items=sch[d];
+    if(filterCidade)items=items.filter(i=>i.c===filterCidade);
+    if(filterMedico)items=items.filter(i=>i.m===filterMedico);
+    return items;
+  };
+
+  let totalA=0,d3=0;
+  for(let d=1;d<=days;d++){const it=getItems(d);totalA+=it.length;if(it.length>=3)d3++}
+
+  return <div className="fade-in">
+    <div style={{display:"flex",justifyContent:"center",gap:16,marginBottom:20,flexWrap:"wrap"}}>
+      <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:14,padding:"12px 28px",textAlign:"center"}}>
+        <div style={{fontSize:26,fontWeight:900,color:"#38BDF8"}}>{totalA}</div>
+        <div style={{fontSize:10,color:"#94A3B8",fontWeight:600}}>ATENDIMENTOS</div>
+      </div>
+      <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:14,padding:"12px 28px",textAlign:"center"}}>
+        <div style={{fontSize:26,fontWeight:900,color:d3>0?"#EF4444":"#22C55E"}}>{d3}</div>
+        <div style={{fontSize:10,color:"#94A3B8",fontWeight:600}}>DIAS 3+ SIMULT.</div>
+      </div>
+    </div>
+    <div style={{background:"rgba(255,255,255,0.02)",borderRadius:16,border:"1px solid rgba(255,255,255,0.06)",overflow:"hidden"}}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",background:"rgba(0,0,0,0.25)"}}>
+        {WEEKDAYS.map((d,i)=><div key={d} style={{padding:"12px 0",textAlign:"center",fontSize:11,fontWeight:800,color:i===0||i===6?"#F87171":"#64748B",letterSpacing:"1.5px"}}>{d}</div>)}
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)"}}>
+        {cells.map((day,i)=>{
+          const items=getItems(day);
+          const level=items.length;
+          const isW=i%7===0||i%7===6;
+          const isSel=selectedDay===day&&day!==null;
+          return <div key={i} onClick={()=>day&&items.length>0&&onDayClick(isSel?null:day)} style={{minHeight:105,padding:6,borderRight:"1px solid rgba(255,255,255,0.04)",borderBottom:"1px solid rgba(255,255,255,0.04)",cursor:day&&items.length>0?"pointer":"default",transition:"background .15s",background:isSel?"rgba(59,130,246,0.15)":level>=3?"rgba(239,68,68,0.07)":!day?"rgba(0,0,0,0.08)":isW?"rgba(0,0,0,0.06)":"transparent"}}>
+            {day&&<>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+                <span style={{fontSize:15,fontWeight:800,color:!items.length?"#475569":isW?"#F87171":"#E2E8F0"}}>{day}</span>
+                {level>0&&<Badge count={level}/>}
+              </div>
+              <div style={{display:"flex",flexDirection:"column",gap:1}}>
+                {items.map((item,j)=><div key={j}><Pill cidade={item.c} small/><div style={{fontSize:8,color:"rgba(255,255,255,0.55)",paddingLeft:6,marginBottom:1}}>{item.m}</div></div>)}
+              </div>
+            </>}
+          </div>;
+        })}
+      </div>
+    </div>
+    {selectedDay&&getItems(selectedDay).length>0&&<div className="fade-in" style={{marginTop:16,background:"rgba(255,255,255,0.04)",borderRadius:14,border:"1px solid rgba(255,255,255,0.08)",padding:20}}>
+      <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
+        <div style={{fontSize:32,fontWeight:900,color:"#38BDF8"}}>{selectedDay}</div>
+        <div><div style={{fontSize:15,fontWeight:700}}>{data.label}</div><div style={{fontSize:12,color:"#94A3B8"}}>{getItems(selectedDay).length} atendimento(s) — Mat. e Vesp.</div></div>
+      </div>
+      {getItems(selectedDay).map((item,j)=><div key={j} className="slide-in" style={{display:"flex",alignItems:"center",gap:12,background:"rgba(0,0,0,0.2)",borderRadius:10,padding:"10px 16px",marginBottom:6,borderLeft:`4px solid ${(CIDADES_COLORS[item.c]||{bg:"#666"}).bg}`}}>
+        <div style={{width:10,height:10,borderRadius:"50%",background:(CIDADES_COLORS[item.c]||{bg:"#666"}).bg,flexShrink:0}}/>
+        <div><div style={{fontSize:13,fontWeight:700}}>{item.c}</div><div style={{fontSize:12,color:"#94A3B8"}}>Dr(a) {item.m}</div></div>
+      </div>)}
+    </div>}
+  </div>;
+}
+
+// ---- Médicos View ----
+function MedicosView({allData,filterCidade,filterMedico}){
+  const medicoMap={};
+  Object.entries(allData).forEach(([mk,md])=>{
+    Object.entries(md.schedule||{}).forEach(([dia,items])=>{
+      items.forEach(item=>{
+        if(filterCidade&&item.c!==filterCidade)return;
+        if(filterMedico&&item.m!==filterMedico)return;
+        if(!medicoMap[item.m])medicoMap[item.m]={meses:{},cidades:new Set()};
+        medicoMap[item.m].cidades.add(item.c);
+        if(!medicoMap[item.m].meses[mk])medicoMap[item.m].meses[mk]=[];
+        medicoMap[item.m].meses[mk].push(Number(dia));
+      });
+    });
+  });
+  const sorted=Object.entries(medicoMap).sort((a,b)=>{
+    const tA=Object.values(a[1].meses).reduce((s,arr)=>s+arr.length,0);
+    const tB=Object.values(b[1].meses).reduce((s,arr)=>s+arr.length,0);
+    return tB-tA;
+  });
+  const mks=Object.keys(allData).sort();
+  return <div className="fade-in" style={{overflowX:"auto"}}>
+    <table style={{width:"100%",borderCollapse:"collapse",background:"rgba(255,255,255,0.02)",borderRadius:14,overflow:"hidden",border:"1px solid rgba(255,255,255,0.06)",minWidth:650}}>
+      <thead><tr style={{background:"rgba(0,0,0,0.3)"}}>
+        <th style={{padding:"14px 16px",textAlign:"left",fontSize:11,fontWeight:800,color:"#94A3B8"}}>MÉDICO(A)</th>
+        <th style={{padding:"14px 16px",textAlign:"left",fontSize:11,fontWeight:800,color:"#94A3B8"}}>MUNICÍPIOS</th>
+        {mks.map(mk=><th key={mk} style={{padding:"14px 12px",textAlign:"center",fontSize:11,fontWeight:800,color:"#94A3B8"}}>{allData[mk].label}</th>)}
+        <th style={{padding:"14px 12px",textAlign:"center",fontSize:11,fontWeight:800,color:"#94A3B8"}}>TOTAL</th>
+      </tr></thead>
+      <tbody>{sorted.map(([nome,info],idx)=>{
+        const total=Object.values(info.meses).reduce((s,a)=>s+a.length,0);
+        return <tr key={nome} style={{borderBottom:"1px solid rgba(255,255,255,0.04)",background:idx%2?"rgba(255,255,255,0.015)":"transparent"}}>
+          <td style={{padding:"12px 16px",fontWeight:700,fontSize:13}}>{nome}</td>
+          <td style={{padding:"12px 16px"}}><div style={{display:"flex",gap:4,flexWrap:"wrap"}}>{[...info.cidades].map(c=><Pill key={c} cidade={c} small/>)}</div></td>
+          {mks.map(mk=>{const dias=(info.meses[mk]||[]).sort((a,b)=>a-b);return <td key={mk} style={{padding:"12px",textAlign:"center",fontSize:12}}>{dias.length>0?<><div style={{fontWeight:800,color:"#38BDF8",fontSize:14}}>{dias.length}d</div><div style={{fontSize:10,color:"#64748B",marginTop:2}}>{dias.join(", ")}</div></>:<span style={{color:"#475569"}}>—</span>}</td>})}
+          <td style={{padding:"12px",textAlign:"center"}}><span style={{display:"inline-block",fontWeight:900,fontSize:15,color:"#38BDF8",background:"rgba(56,189,248,0.12)",padding:"4px 14px",borderRadius:8}}>{total}</span></td>
+        </tr>;
+      })}</tbody>
+    </table>
+  </div>;
+}
+
+// ---- Editor ----
+function EditorView({allData,setAllData}){
+  const[editMonth,setEditMonth]=useState(Object.keys(allData).sort()[0]||"");
+  const[editDay,setEditDay]=useState("");
+  const[editCidade,setEditCidade]=useState(Object.keys(CIDADES_COLORS)[0]);
+  const[editMedico,setEditMedico]=useState("");
+  const[showNew,setShowNew]=useState(false);
+  const[newY,setNewY]=useState("2026");
+  const[newM,setNewM]=useState("5");
+  const[status,setStatus]=useState("");
+  const jsonRef=useRef(null);
+
+  const IS={padding:"8px 12px",borderRadius:8,border:"1px solid rgba(255,255,255,0.12)",background:"rgba(255,255,255,0.06)",color:"#E2E8F0",fontSize:13,outline:"none"};
+  const BS={padding:"8px 16px",borderRadius:8,border:"none",cursor:"pointer",fontSize:13,fontWeight:700,transition:"all .2s"};
+
+  const addEntry=()=>{
+    if(!editMonth||!editDay||!editCidade||!editMedico.trim())return;
+    const d=Number(editDay);const nd=clone(allData);
+    if(!nd[editMonth])return;
+    if(!nd[editMonth].schedule[d])nd[editMonth].schedule[d]=[];
+    if(nd[editMonth].schedule[d].some(i=>i.c===editCidade&&i.m===editMedico.trim()))return;
+    nd[editMonth].schedule[d].push({c:editCidade,m:editMedico.trim()});
+    setAllData(nd);setEditMedico("");
+  };
+
+  const removeEntry=(mk,day,idx)=>{
+    const nd=clone(allData);nd[mk].schedule[day].splice(idx,1);
+    if(!nd[mk].schedule[day].length)delete nd[mk].schedule[day];
+    setAllData(nd);
+  };
+
+  const addMonth=()=>{
+    const y=Number(newY),m=Number(newM);
+    if(m<1||m>12||y<2024||y>2030)return;
+    const key=makeKey(y,m);if(allData[key])return;
+    const nd=clone(allData);nd[key]={label:`${MN[m]} ${y}`,schedule:{}};
+    setAllData(nd);setEditMonth(key);setShowNew(false);
+  };
+
+  const removeMonth=k=>{
+    if(!confirm(`Remover ${allData[k].label}?`))return;
+    const nd=clone(allData);delete nd[k];setAllData(nd);
+    const rem=Object.keys(nd).sort();setEditMonth(rem[0]||"");
+  };
+
+  const exportJSON=()=>{
+    const blob=new Blob([JSON.stringify(allData,null,2)],{type:"application/json"});
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+    a.download="inovamed_escalas.json";a.click();
+  };
+
+  const importJSON=e=>{
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=()=>{try{setAllData(JSON.parse(reader.result));setStatus("✅ Dados importados!")}catch{setStatus("❌ JSON inválido")}};
+    reader.readAsText(file);e.target.value="";
+  };
+
+  const mks=Object.keys(allData).sort();
+  const curSch=allData[editMonth]?.schedule||{};
+  const sortDays=Object.keys(curSch).map(Number).sort((a,b)=>a-b);
+
+  return <div className="fade-in">
+    {/* Manual add */}
+    <div style={{background:"rgba(255,255,255,0.03)",borderRadius:14,border:"1px solid rgba(255,255,255,0.08)",padding:20,marginBottom:20}}>
+      <h3 style={{fontSize:16,fontWeight:800,marginBottom:12}}>✏️ Adicionar Atendimento</h3>
+      <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"flex-end"}}>
+        <div><label style={{fontSize:11,color:"#94A3B8",display:"block",marginBottom:4}}>Mês</label><select value={editMonth} onChange={e=>setEditMonth(e.target.value)} style={{...IS,minWidth:120}}>{mks.map(k=><option key={k} value={k}>{allData[k].label}</option>)}</select></div>
+        <div><label style={{fontSize:11,color:"#94A3B8",display:"block",marginBottom:4}}>Dia</label><input type="number" min="1" max="31" value={editDay} onChange={e=>setEditDay(e.target.value)} style={{...IS,width:65}}/></div>
+        <div><label style={{fontSize:11,color:"#94A3B8",display:"block",marginBottom:4}}>Município</label><select value={editCidade} onChange={e=>setEditCidade(e.target.value)} style={{...IS,minWidth:150}}>{Object.keys(CIDADES_COLORS).map(c=><option key={c} value={c}>{c}</option>)}</select></div>
+        <div><label style={{fontSize:11,color:"#94A3B8",display:"block",marginBottom:4}}>Médico(a)</label><input type="text" value={editMedico} onChange={e=>setEditMedico(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addEntry()} placeholder="Nome" style={{...IS,minWidth:170}}/></div>
+        <button onClick={addEntry} style={{...BS,background:"#22C55E",color:"#FFF"}}>+ Adicionar</button>
+      </div>
+      <div style={{marginTop:16,paddingTop:16,borderTop:"1px solid rgba(255,255,255,0.06)"}}>
+        {!showNew?<button onClick={()=>setShowNew(true)} style={{...BS,background:"rgba(255,255,255,0.06)",color:"#94A3B8"}}>📅 Criar Novo Mês</button>:
+        <div style={{display:"flex",gap:10,alignItems:"flex-end",flexWrap:"wrap"}}>
+          <div><label style={{fontSize:11,color:"#94A3B8",display:"block",marginBottom:4}}>Ano</label><input type="number" value={newY} onChange={e=>setNewY(e.target.value)} style={{...IS,width:80}}/></div>
+          <div><label style={{fontSize:11,color:"#94A3B8",display:"block",marginBottom:4}}>Mês</label><select value={newM} onChange={e=>setNewM(e.target.value)} style={IS}>{MN.slice(1).map((n,i)=><option key={i+1} value={i+1}>{n}</option>)}</select></div>
+          <button onClick={addMonth} style={{...BS,background:"#22C55E",color:"#FFF"}}>Criar</button>
+          <button onClick={()=>setShowNew(false)} style={{...BS,background:"rgba(255,255,255,0.06)",color:"#94A3B8"}}>Cancelar</button>
+        </div>}
+      </div>
+    </div>
+
+    {/* Entries list */}
+    <div style={{background:"rgba(255,255,255,0.03)",borderRadius:14,border:"1px solid rgba(255,255,255,0.08)",padding:20,marginBottom:20}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:10}}>
+        <h3 style={{fontSize:16,fontWeight:800}}>📋 {allData[editMonth]?.label||""}</h3>
+        <button onClick={()=>removeMonth(editMonth)} style={{...BS,background:"rgba(239,68,68,0.15)",color:"#EF4444",fontSize:11}}>🗑 Remover Mês</button>
+      </div>
+      {sortDays.length===0&&<p style={{color:"#64748B",fontSize:13}}>Nenhum atendimento neste mês.</p>}
+      {sortDays.map(day=><div key={day} style={{marginBottom:10}}>
+        <div style={{fontSize:12,fontWeight:800,color:"#64748B",marginBottom:4}}>DIA {day}</div>
+        {curSch[day].map((item,idx)=><div key={idx} className="slide-in" style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"rgba(0,0,0,0.15)",borderRadius:8,padding:"8px 12px",marginBottom:4,borderLeft:`3px solid ${(CIDADES_COLORS[item.c]||{bg:"#666"}).bg}`}}>
+          <div style={{display:"flex",alignItems:"center",gap:10}}><Pill cidade={item.c} small/><span style={{fontSize:12}}>{item.m}</span></div>
+          <button onClick={()=>removeEntry(editMonth,day,idx)} style={{background:"none",border:"none",color:"#EF4444",cursor:"pointer",fontSize:18,padding:"2px 6px",lineHeight:1}}>×</button>
+        </div>)}
+      </div>)}
+    </div>
+
+    {/* Export/Import */}
+    <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+      <button onClick={exportJSON} style={{...BS,background:"rgba(255,255,255,0.06)",color:"#94A3B8"}}>💾 Exportar JSON</button>
+      <label style={{...BS,background:"rgba(255,255,255,0.06)",color:"#94A3B8",cursor:"pointer",display:"inline-flex",alignItems:"center"}}>📂 Importar JSON<input ref={jsonRef} type="file" accept=".json" onChange={importJSON} style={{display:"none"}}/></label>
+    </div>
+  </div>;
+}
+
+// ---- MAIN APP ----
+function App(){
+  const[allData,setAllData]=useState(()=>{
+    try{const s=localStorage.getItem("inovamed_v2");if(s)return JSON.parse(s)}catch{}return INITIAL_DATA;
+  });
+  const[tab,setTab]=useState("calendario");
+  const[activeMonth,setActiveMonth]=useState(()=>Object.keys(allData).sort()[0]||"");
+  const[selectedDay,setSelectedDay]=useState(null);
+  const[filterCidade,setFilterCidade]=useState(null);
+  const[filterMedico,setFilterMedico]=useState(null);
+
+  useEffect(()=>{try{localStorage.setItem("inovamed_v2",JSON.stringify(allData))}catch{}},[allData]);
+  useEffect(()=>{const ks=Object.keys(allData).sort();if(!ks.includes(activeMonth)&&ks.length)setActiveMonth(ks[0])},[allData]);
+
+  const allMedicos=useMemo(()=>{
+    const s=new Set();
+    Object.values(allData).forEach(md=>Object.values(md.schedule||{}).forEach(items=>items.forEach(i=>s.add(i.m))));
+    return[...s].sort();
+  },[allData]);
+
+  const mks=Object.keys(allData).sort();
+
+  return <div style={{maxWidth:1150,margin:"0 auto",padding:"24px 16px"}}>
+    {/* Header */}
+    <div style={{textAlign:"center",marginBottom:28}}>
+      <h1 style={{fontSize:28,fontWeight:900,letterSpacing:"-.5px",background:"linear-gradient(90deg,#38BDF8,#818CF8,#A78BFA)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>INOVAMED — Escalas Médicas</h1>
+      <p style={{color:"#64748B",fontSize:12,marginTop:4}}>Calendário consolidado de atendimentos por município</p>
+    </div>
+
+    {/* Tabs */}
+    <div style={{display:"flex",justifyContent:"center",gap:8,marginBottom:20,flexWrap:"wrap"}}>
+      {[["calendario","📅","Calendário"],["medicos","👨‍⚕️","Por Médico"],["editar","✏️","Editar"]].map(([id,icon,label])=>
+        <button key={id} onClick={()=>setTab(id)} style={{padding:"10px 20px",borderRadius:12,border:"none",cursor:"pointer",fontSize:13,fontWeight:700,display:"flex",alignItems:"center",gap:7,transition:"all .2s",background:tab===id?"linear-gradient(135deg,#3B82F6,#8B5CF6)":"rgba(255,255,255,0.05)",color:tab===id?"#FFF":"#94A3B8",boxShadow:tab===id?"0 4px 20px rgba(59,130,246,0.25)":"none"}}><span style={{fontSize:16}}>{icon}</span>{label}</button>
+      )}
+    </div>
+
+    {/* Month selector */}
+    {tab==="calendario"&&<div style={{display:"flex",justifyContent:"center",gap:6,marginBottom:16,flexWrap:"wrap"}}>
+      {mks.map(mk=><button key={mk} onClick={()=>{setActiveMonth(mk);setSelectedDay(null)}} style={{padding:"8px 20px",borderRadius:10,border:"none",cursor:"pointer",fontSize:13,fontWeight:700,transition:"all .2s",background:activeMonth===mk?"rgba(255,255,255,0.12)":"rgba(255,255,255,0.04)",color:activeMonth===mk?"#FFF":"#64748B"}}>{allData[mk].label}</button>)}
+    </div>}
+
+    {/* Filters */}
+    {(tab==="calendario"||tab==="medicos")&&<div style={{marginBottom:20}}>
+      <div style={{display:"flex",justifyContent:"center",flexWrap:"wrap",gap:6,marginBottom:10}}>
+        <button onClick={()=>{setFilterCidade(null);setFilterMedico(null)}} style={{padding:"5px 12px",borderRadius:20,border:"none",cursor:"pointer",fontSize:11,fontWeight:700,background:!filterCidade&&!filterMedico?"#FFF":"rgba(255,255,255,0.06)",color:!filterCidade&&!filterMedico?"#0F172A":"#64748B"}}>TODOS</button>
+        {Object.entries(CIDADES_COLORS).map(([c,colors])=><button key={c} onClick={()=>{setFilterCidade(filterCidade===c?null:c);setFilterMedico(null)}} style={{padding:"5px 12px",borderRadius:20,border:"none",cursor:"pointer",fontSize:10,fontWeight:700,background:filterCidade===c?colors.bg:"rgba(255,255,255,0.06)",color:filterCidade===c?"#FFF":"#64748B"}}>{c}</button>)}
+      </div>
+      <div style={{display:"flex",justifyContent:"center",flexWrap:"wrap",gap:4}}>
+        {allMedicos.map(m=><button key={m} onClick={()=>{setFilterMedico(filterMedico===m?null:m);setFilterCidade(null)}} style={{padding:"4px 10px",borderRadius:14,border:`1px solid ${filterMedico===m?"#38BDF8":"rgba(255,255,255,0.08)"}`,cursor:"pointer",fontSize:10,fontWeight:600,background:filterMedico===m?"rgba(56,189,248,0.2)":"transparent",color:filterMedico===m?"#38BDF8":"#64748B"}}>{m}</button>)}
+      </div>
+    </div>}
+
+    {/* Legend */}
+    {tab==="calendario"&&<div style={{display:"flex",justifyContent:"center",gap:16,marginBottom:20,flexWrap:"wrap"}}>
+      {[["#22C55E","1 município"],["#FBBF24","2 municípios"],["#EF4444","3+ ⚠️"]].map(([c,l],i)=><div key={i} style={{display:"flex",alignItems:"center",gap:6}}><div style={{width:12,height:12,borderRadius:3,background:c}}/><span style={{fontSize:11,color:"#64748B"}}>{l}</span></div>)}
+    </div>}
+
+    {/* Content */}
+    {tab==="calendario"&&allData[activeMonth]&&<CalendarView monthKey={activeMonth} data={allData[activeMonth]} selectedDay={selectedDay} onDayClick={setSelectedDay} filterCidade={filterCidade} filterMedico={filterMedico}/>}
+    {tab==="medicos"&&<MedicosView allData={allData} filterCidade={filterCidade} filterMedico={filterMedico}/>}
+    {tab==="editar"&&<EditorView allData={allData} setAllData={setAllData}/>}
+
+    <div style={{textAlign:"center",marginTop:40,padding:"20px 0",borderTop:"1px solid rgba(255,255,255,0.06)"}}>
+      <p style={{fontSize:11,color:"#475569"}}>INOVAMED — Diagnóstico por Imagem • {new Date().getFullYear()}</p>
+    </div>
+  </div>;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
