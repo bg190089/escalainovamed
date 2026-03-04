@@ -13,46 +13,53 @@
 <style>
   *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
   html{font-size:14px;-webkit-tap-highlight-color:transparent}
-  body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:#070B14;color:#E2E8F0;min-height:100vh;min-height:100dvh;overscroll-behavior:none}
+  body{
+    font-family:'Plus Jakarta Sans',system-ui,sans-serif;
+    background:#F1F5F9;
+    color:#1E293B;
+    min-height:100vh;min-height:100dvh;
+    overscroll-behavior:none;
+  }
   ::-webkit-scrollbar{width:4px;height:4px}
   ::-webkit-scrollbar-track{background:transparent}
-  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:4px}
+  ::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.12);border-radius:4px}
   input,select,textarea,button{font-family:inherit}
 
   @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
   @keyframes slideUp{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:translateY(0)}}
   @keyframes slideDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-  @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
-  @keyframes dragPulse{0%,100%{box-shadow:0 0 0 0 rgba(56,189,248,0.4)}50%{box-shadow:0 0 0 8px rgba(56,189,248,0)}}
   @keyframes scaleIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+  @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
   .fade-in{animation:fadeIn .3s ease-out}
   .scale-in{animation:scaleIn .25s ease-out}
 
-  /* Mobile-first touch improvements */
   button,a{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
   .touch-btn{min-height:44px;min-width:44px}
 
-  /* Drag ghost styling */
-  .drag-ghost{position:fixed;pointer-events:none;z-index:9999;opacity:.9;transform:scale(1.05);filter:drop-shadow(0 8px 24px rgba(0,0,0,0.5))}
-  .drag-over-day{background:rgba(56,189,248,0.15)!important;outline:2px dashed rgba(56,189,248,0.5);outline-offset:-2px}
+  /* Drag */
+  .drag-ghost{position:fixed;pointer-events:none;z-index:9999;opacity:.92;transform:scale(1.06);filter:drop-shadow(0 8px 20px rgba(0,0,0,0.25))}
+  .drag-over-day{background:rgba(37,99,235,0.10)!important;outline:2px dashed rgba(37,99,235,0.4);outline-offset:-2px}
   .dragging-source{opacity:.3}
 
   /* Autocomplete */
-  .autocomplete-list{position:absolute;top:100%;left:0;right:0;z-index:100;background:#1E293B;border:1px solid rgba(255,255,255,0.12);border-radius:10px;max-height:200px;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,0.5);margin-top:4px}
-  .autocomplete-item{padding:10px 14px;cursor:pointer;font-size:13px;font-weight:500;transition:background .1s;display:flex;align-items:center;gap:8px}
-  .autocomplete-item:hover,.autocomplete-item.active{background:rgba(56,189,248,0.12);color:#38BDF8}
-  .autocomplete-item:first-child{border-radius:10px 10px 0 0}
-  .autocomplete-item:last-child{border-radius:0 0 10px 10px}
-  .autocomplete-new{color:#22C55E;font-style:italic}
+  .autocomplete-list{position:absolute;top:100%;left:0;right:0;z-index:100;background:#FFF;border:1px solid #E2E8F0;border-radius:12px;max-height:200px;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,0.12);margin-top:4px}
+  .autocomplete-item{padding:10px 14px;cursor:pointer;font-size:13px;font-weight:500;transition:background .1s;display:flex;align-items:center;gap:8px;color:#334155}
+  .autocomplete-item:hover,.autocomplete-item.active{background:#EFF6FF;color:#2563EB}
+  .autocomplete-item:first-child{border-radius:12px 12px 0 0}
+  .autocomplete-item:last-child{border-radius:0 0 12px 12px}
+  .autocomplete-new{color:#16A34A;font-style:italic}
 
   /* Bottom sheet */
-  .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:500;animation:fadeIn .2s ease-out}
-  .bottom-sheet{position:fixed;bottom:0;left:0;right:0;z-index:501;background:#0F172A;border-radius:20px 20px 0 0;max-height:85dvh;overflow-y:auto;animation:slideUp .3s ease-out;padding:20px 16px;padding-bottom:max(20px,env(safe-area-inset-bottom))}
-  .bottom-sheet-handle{width:40px;height:4px;background:rgba(255,255,255,0.2);border-radius:4px;margin:0 auto 16px}
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);backdrop-filter:blur(4px);z-index:500;animation:fadeIn .2s ease-out}
+  .bottom-sheet{position:fixed;bottom:0;left:0;right:0;z-index:501;background:#FFF;border-radius:20px 20px 0 0;max-height:85dvh;overflow-y:auto;animation:slideUp .3s ease-out;padding:20px 16px;padding-bottom:max(20px,env(safe-area-inset-bottom));box-shadow:0 -8px 40px rgba(0,0,0,0.12)}
+  .bottom-sheet-handle{width:40px;height:4px;background:#CBD5E1;border-radius:4px;margin:0 auto 16px}
 
   /* Toast */
-  .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:9999;padding:10px 20px;border-radius:12px;font-size:13px;font-weight:700;animation:slideDown .3s ease-out;pointer-events:none;backdrop-filter:blur(12px)}
+  .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:9999;padding:10px 20px;border-radius:12px;font-size:13px;font-weight:700;animation:slideDown .3s ease-out;pointer-events:none;color:#FFF;box-shadow:0 4px 16px rgba(0,0,0,0.15)}
+
+  /* Cards */
+  .card{background:#FFF;border-radius:16px;border:1px solid #E8ECF1;box-shadow:0 1px 3px rgba(0,0,0,0.04);padding:20px}
 </style>
 </head>
 <body>
@@ -60,14 +67,15 @@
 <script type="text/babel">
 const{useState,useEffect,useRef,useMemo,useCallback}=React;
 
-/* ═══════════════════════════════ DATA & UTILS ═══════════════════════════════ */
+const LS_KEY="inovamed_v3"; // chave fixa — nunca muda entre versoes
+
 const CIDADES_COLORS={
-  "SANTO ESTEVÃO":{bg:"#2563EB",glow:"rgba(37,99,235,0.3)"},
-  "COITÉ":{bg:"#7C3AED",glow:"rgba(124,58,237,0.3)"},
-  "SERRA PRETA":{bg:"#059669",glow:"rgba(5,150,105,0.3)"},
-  "BARROCAS":{bg:"#D97706",glow:"rgba(217,119,6,0.3)"},
-  "SERRINHA":{bg:"#DC2626",glow:"rgba(220,38,38,0.3)"},
-  "CONCEIÇÃO DA FEIRA":{bg:"#0891B2",glow:"rgba(8,145,178,0.3)"},
+  "SANTO ESTEVÃO":{bg:"#2563EB",light:"#DBEAFE"},
+  "COITÉ":{bg:"#7C3AED",light:"#EDE9FE"},
+  "SERRA PRETA":{bg:"#059669",light:"#D1FAE5"},
+  "BARROCAS":{bg:"#D97706",light:"#FEF3C7"},
+  "SERRINHA":{bg:"#DC2626",light:"#FEE2E2"},
+  "CONCEIÇÃO DA FEIRA":{bg:"#0891B2",light:"#CFFAFE"},
 };
 
 const INITIAL_DATA={
@@ -120,33 +128,33 @@ const parseKey=k=>{const[y,m]=k.split("-").map(Number);return{year:y,month:m}};
 const makeKey=(y,m)=>`${y}-${String(m).padStart(2,"0")}`;
 const clone=o=>JSON.parse(JSON.stringify(o));
 
-/* ═══════════════════════════════ SMALL COMPONENTS ═══════════════════════════════ */
+/* ═══════ SMALL COMPONENTS ═══════ */
 function Pill({cidade,small,micro}){
-  const c=CIDADES_COLORS[cidade]||{bg:"#666"};
-  const sz=micro?{p:"1px 5px",fs:7,br:4}:small?{p:"2px 7px",fs:9,br:5}:{p:"3px 10px",fs:10,br:6};
-  return <span style={{display:"inline-block",padding:sz.p,borderRadius:sz.br,fontSize:sz.fs,fontWeight:700,background:c.bg,color:"#FFF",whiteSpace:"nowrap",letterSpacing:".3px",lineHeight:1.3}}>{micro&&cidade.length>8?cidade.slice(0,7)+"…":small&&cidade.length>14?cidade.slice(0,13)+"…":cidade}</span>;
+  const c=CIDADES_COLORS[cidade]||{bg:"#666",light:"#EEE"};
+  if(micro)return <span style={{display:"inline-block",padding:"1px 5px",borderRadius:4,fontSize:7,fontWeight:700,background:c.bg,color:"#FFF",whiteSpace:"nowrap",letterSpacing:".2px",lineHeight:1.4}}>{cidade.length>9?cidade.slice(0,8)+"…":cidade}</span>;
+  if(small)return <span style={{display:"inline-block",padding:"2px 7px",borderRadius:5,fontSize:9,fontWeight:700,background:c.bg,color:"#FFF",whiteSpace:"nowrap",letterSpacing:".2px",lineHeight:1.4}}>{cidade.length>15?cidade.slice(0,14)+"…":cidade}</span>;
+  return <span style={{display:"inline-block",padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:700,background:c.bg,color:"#FFF",whiteSpace:"nowrap",letterSpacing:".3px"}}>{cidade}</span>;
 }
 
 function Badge({count}){
-  const bg=count>=3?"#EF4444":count===2?"#FBBF24":"#22C55E";
-  const color=count===2?"#0F172A":"#FFF";
+  const bg=count>=3?"#DC2626":count===2?"#F59E0B":"#16A34A";
+  const color=count===2?"#FFF":"#FFF";
   return <span style={{fontSize:8,fontWeight:800,color,background:bg,borderRadius:5,padding:"1px 5px",lineHeight:1,animation:count>=3?"pulse 2s infinite":"none"}}>{count}</span>;
 }
 
 function Toast({message,type}){
-  const bg=type==="success"?"rgba(34,197,94,0.9)":type==="error"?"rgba(239,68,68,0.9)":"rgba(56,189,248,0.9)";
-  return <div className="toast" style={{background:bg,color:"#FFF"}}>{message}</div>;
+  const bg=type==="success"?"#16A34A":type==="error"?"#DC2626":"#2563EB";
+  return <div className="toast" style={{background:bg}}>{message}</div>;
 }
 
-/* ═══════════════════════════════ AUTOCOMPLETE INPUT ═══════════════════════════════ */
+/* ═══════ AUTOCOMPLETE ═══════ */
 function AutocompleteInput({value,onChange,suggestions,placeholder,onSelect,onSubmit}){
   const[open,setOpen]=useState(false);
   const[activeIdx,setActiveIdx]=useState(-1);
   const ref=useRef(null);
-  const listRef=useRef(null);
 
   const filtered=useMemo(()=>{
-    if(!value.trim())return suggestions.slice(0,10);
+    if(!value.trim())return suggestions.slice(0,12);
     const q=value.toLowerCase().trim();
     return suggestions.filter(s=>s.toLowerCase().includes(q));
   },[value,suggestions]);
@@ -154,11 +162,10 @@ function AutocompleteInput({value,onChange,suggestions,placeholder,onSelect,onSu
   const showNew=value.trim().length>0&&!suggestions.some(s=>s.toLowerCase()===value.trim().toLowerCase());
 
   useEffect(()=>{setActiveIdx(-1)},[value]);
-
   useEffect(()=>{
-    const handleClick=(e)=>{if(ref.current&&!ref.current.contains(e.target))setOpen(false)};
-    document.addEventListener("mousedown",handleClick);document.addEventListener("touchstart",handleClick);
-    return()=>{document.removeEventListener("mousedown",handleClick);document.removeEventListener("touchstart",handleClick)};
+    const h=(e)=>{if(ref.current&&!ref.current.contains(e.target))setOpen(false)};
+    document.addEventListener("mousedown",h);document.addEventListener("touchstart",h);
+    return()=>{document.removeEventListener("mousedown",h);document.removeEventListener("touchstart",h)};
   },[]);
 
   const handleKey=(e)=>{
@@ -175,115 +182,77 @@ function AutocompleteInput({value,onChange,suggestions,placeholder,onSelect,onSu
   };
 
   return <div ref={ref} style={{position:"relative",flex:1,minWidth:0}}>
-    <input
-      type="text" value={value}
+    <input type="text" value={value}
       onChange={e=>{onChange(e.target.value);setOpen(true)}}
       onFocus={()=>setOpen(true)}
       onKeyDown={handleKey}
       placeholder={placeholder}
-      style={{width:"100%",padding:"10px 14px",borderRadius:10,border:"1px solid rgba(255,255,255,0.12)",background:"rgba(255,255,255,0.06)",color:"#E2E8F0",fontSize:14,outline:"none",transition:"border-color .2s"}}
+      style={{width:"100%",padding:"10px 14px",borderRadius:10,border:"1px solid #D1D5DB",background:"#FFF",color:"#1E293B",fontSize:14,outline:"none",transition:"border-color .2s"}}
     />
-    {open&&(filtered.length>0||showNew)&&<div className="autocomplete-list scale-in" ref={listRef}>
+    {open&&(filtered.length>0||showNew)&&<div className="autocomplete-list scale-in">
       {filtered.map((s,i)=><div key={s} className={`autocomplete-item${activeIdx===i?" active":""}`} onMouseDown={()=>{onSelect(s);setOpen(false)}} onMouseEnter={()=>setActiveIdx(i)}>
-        <span style={{fontSize:15}}>👨‍⚕️</span>{s}
+        <span style={{fontSize:14}}>👨‍⚕️</span>{s}
       </div>)}
       {showNew&&<div className={`autocomplete-item autocomplete-new${activeIdx===filtered.length?" active":""}`} onMouseDown={()=>{onSelect(value.trim());setOpen(false)}} onMouseEnter={()=>setActiveIdx(filtered.length)}>
-        <span style={{fontSize:14}}>➕</span>Cadastrar "<strong>{value.trim()}</strong>"
+        <span style={{fontSize:13}}>➕</span>Cadastrar "<strong>{value.trim()}</strong>"
       </div>}
     </div>}
   </div>;
 }
 
-/* ═══════════════════════════════ DRAG & DROP MANAGER ═══════════════════════════════ */
+/* ═══════ DRAG & DROP ═══════ */
 function useDragDrop(allData,activeMonth,setAllData,showToast){
-  const[dragging,setDragging]=useState(null); // {monthKey,day,idx,item}
+  const[dragging,setDragging]=useState(null);
   const[dragOverDay,setDragOverDay]=useState(null);
   const ghostRef=useRef(null);
-  const touchOffsetRef=useRef({x:0,y:0});
 
   const startDrag=(monthKey,day,idx,item,e)=>{
     e.stopPropagation();
     setDragging({monthKey,day,idx,item});
-
-    // Create ghost element
     const ghost=document.createElement("div");
     ghost.className="drag-ghost";
-    ghost.innerHTML=`<div style="background:${(CIDADES_COLORS[item.c]||{bg:"#666"}).bg};color:#FFF;padding:8px 14px;border-radius:10px;font-size:12px;font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:6px;"><span>${item.c}</span><span style='opacity:.7;font-weight:500'>— ${item.m}</span></div>`;
+    const col=(CIDADES_COLORS[item.c]||{bg:"#666"}).bg;
+    ghost.innerHTML=`<div style="background:${col};color:#FFF;padding:8px 16px;border-radius:10px;font-size:12px;font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:6px;box-shadow:0 4px 16px rgba(0,0,0,0.2)"><span>${item.c}</span><span style='opacity:.7;font-weight:500'>— ${item.m}</span></div>`;
     document.body.appendChild(ghost);
     ghostRef.current=ghost;
-
-    if(e.touches){
-      const t=e.touches[0];
-      touchOffsetRef.current={x:0,y:-50};
-      ghost.style.left=(t.clientX)+"px";
-      ghost.style.top=(t.clientY-50)+"px";
-    }
+    if(e.touches){ghost.style.left=e.touches[0].clientX+"px";ghost.style.top=(e.touches[0].clientY-50)+"px"}
   };
 
-  const onMove=(e)=>{
-    if(!dragging||!ghostRef.current)return;
+  const onMove=useCallback((e)=>{
+    if(!ghostRef.current)return;
     const pos=e.touches?e.touches[0]:{clientX:e.clientX,clientY:e.clientY};
     ghostRef.current.style.left=pos.clientX+"px";
     ghostRef.current.style.top=(pos.clientY-50)+"px";
-
-    // Find drop target
     const el=document.elementFromPoint(pos.clientX,pos.clientY);
-    if(el){
-      const dayEl=el.closest("[data-dropday]");
-      if(dayEl){
-        const dropDay=Number(dayEl.dataset.dropday);
-        setDragOverDay(dropDay);
-      } else {
-        setDragOverDay(null);
-      }
-    }
-  };
+    if(el){const dayEl=el.closest("[data-dropday]");setDragOverDay(dayEl?Number(dayEl.dataset.dropday):null)}else{setDragOverDay(null)}
+  },[]);
 
-  const endDrag=()=>{
+  const endDrag=useCallback(()=>{
     if(ghostRef.current){ghostRef.current.remove();ghostRef.current=null}
-
     if(dragging&&dragOverDay!==null&&(dragging.day!==dragOverDay||dragging.monthKey!==activeMonth)){
       const nd=clone(allData);
-      // Remove from source
       nd[dragging.monthKey].schedule[dragging.day].splice(dragging.idx,1);
       if(!nd[dragging.monthKey].schedule[dragging.day].length)delete nd[dragging.monthKey].schedule[dragging.day];
-      // Add to target day in active month
       if(!nd[activeMonth].schedule[dragOverDay])nd[activeMonth].schedule[dragOverDay]=[];
-      const already=nd[activeMonth].schedule[dragOverDay].some(i=>i.c===dragging.item.c&&i.m===dragging.item.m);
-      if(!already){
+      if(!nd[activeMonth].schedule[dragOverDay].some(i=>i.c===dragging.item.c&&i.m===dragging.item.m)){
         nd[activeMonth].schedule[dragOverDay].push({...dragging.item});
-        setAllData(nd);
-        showToast(`Movido para dia ${dragOverDay}`,"success");
-      } else {
-        showToast("Já existe neste dia","error");
-      }
+        setAllData(nd);showToast(`Movido para dia ${dragOverDay}`,"success");
+      }else{showToast("Já existe neste dia","error")}
     }
-    setDragging(null);
-    setDragOverDay(null);
-  };
+    setDragging(null);setDragOverDay(null);
+  },[dragging,dragOverDay,allData,activeMonth]);
 
   useEffect(()=>{
     if(!dragging)return;
-    const move=(e)=>onMove(e);
-    const end=()=>endDrag();
-    document.addEventListener("mousemove",move);
-    document.addEventListener("mouseup",end);
-    document.addEventListener("touchmove",move,{passive:false});
-    document.addEventListener("touchend",end);
-    document.addEventListener("touchcancel",end);
-    return()=>{
-      document.removeEventListener("mousemove",move);
-      document.removeEventListener("mouseup",end);
-      document.removeEventListener("touchmove",move);
-      document.removeEventListener("touchend",end);
-      document.removeEventListener("touchcancel",end);
-    };
-  },[dragging,dragOverDay,allData,activeMonth]);
+    document.addEventListener("mousemove",onMove);document.addEventListener("mouseup",endDrag);
+    document.addEventListener("touchmove",onMove,{passive:false});document.addEventListener("touchend",endDrag);document.addEventListener("touchcancel",endDrag);
+    return()=>{document.removeEventListener("mousemove",onMove);document.removeEventListener("mouseup",endDrag);document.removeEventListener("touchmove",onMove);document.removeEventListener("touchend",endDrag);document.removeEventListener("touchcancel",endDrag)};
+  },[dragging,onMove,endDrag]);
 
   return{dragging,dragOverDay,startDrag};
 }
 
-/* ═══════════════════════════════ CALENDAR VIEW ═══════════════════════════════ */
+/* ═══════ CALENDAR ═══════ */
 function CalendarView({monthKey,data,allData,setAllData,selectedDay,onDayClick,filterCidade,filterMedico,showToast,activeMonth}){
   const{year,month}=parseKey(monthKey);
   const days=getDays(year,month);
@@ -306,34 +275,33 @@ function CalendarView({monthKey,data,allData,setAllData,selectedDay,onDayClick,f
 
   let totalA=0,d3=0;
   for(let d=1;d<=days;d++){const it=getItems(d);totalA+=it.length;if(it.length>=3)d3++}
-
   const today=new Date();
-  const isToday=(d)=>today.getFullYear()===year&&today.getMonth()+1===month&&today.getDate()===d;
+  const isToday=d=>today.getFullYear()===year&&today.getMonth()+1===month&&today.getDate()===d;
 
   return <div className="fade-in">
     {/* Stats */}
-    <div style={{display:"flex",justifyContent:"center",gap:12,marginBottom:16}}>
-      <div style={{background:"rgba(56,189,248,0.08)",border:"1px solid rgba(56,189,248,0.15)",borderRadius:14,padding:"10px 24px",textAlign:"center",flex:"0 0 auto"}}>
-        <div style={{fontSize:24,fontWeight:900,color:"#38BDF8"}}>{totalA}</div>
-        <div style={{fontSize:9,color:"#64748B",fontWeight:700,letterSpacing:".5px"}}>ATENDIMENTOS</div>
+    <div style={{display:"flex",gap:10,marginBottom:14}}>
+      <div style={{flex:1,background:"#FFF",border:"1px solid #E2E8F0",borderRadius:14,padding:"10px 16px",textAlign:"center",boxShadow:"0 1px 2px rgba(0,0,0,0.04)"}}>
+        <div style={{fontSize:24,fontWeight:900,color:"#2563EB"}}>{totalA}</div>
+        <div style={{fontSize:9,color:"#94A3B8",fontWeight:700,letterSpacing:".5px"}}>ATENDIMENTOS</div>
       </div>
-      <div style={{background:d3>0?"rgba(239,68,68,0.08)":"rgba(34,197,94,0.08)",border:`1px solid ${d3>0?"rgba(239,68,68,0.15)":"rgba(34,197,94,0.15)"}`,borderRadius:14,padding:"10px 24px",textAlign:"center",flex:"0 0 auto"}}>
-        <div style={{fontSize:24,fontWeight:900,color:d3>0?"#EF4444":"#22C55E"}}>{d3}</div>
-        <div style={{fontSize:9,color:"#64748B",fontWeight:700,letterSpacing:".5px"}}>DIAS 3+</div>
+      <div style={{flex:1,background:"#FFF",border:`1px solid ${d3>0?"#FCA5A5":"#BBF7D0"}`,borderRadius:14,padding:"10px 16px",textAlign:"center",boxShadow:"0 1px 2px rgba(0,0,0,0.04)"}}>
+        <div style={{fontSize:24,fontWeight:900,color:d3>0?"#DC2626":"#16A34A"}}>{d3}</div>
+        <div style={{fontSize:9,color:"#94A3B8",fontWeight:700,letterSpacing:".5px"}}>DIAS 3+</div>
       </div>
     </div>
 
-    {dragging&&<div style={{textAlign:"center",marginBottom:12,animation:"fadeIn .2s ease"}}>
-      <span style={{fontSize:11,color:"#38BDF8",fontWeight:600,background:"rgba(56,189,248,0.1)",padding:"6px 14px",borderRadius:20}}>
-        ↕ Arraste para o dia desejado
-      </span>
+    {dragging&&<div style={{textAlign:"center",marginBottom:10}}>
+      <span style={{fontSize:11,color:"#2563EB",fontWeight:600,background:"#DBEAFE",padding:"6px 14px",borderRadius:20}}>↕ Arraste para o dia desejado</span>
     </div>}
 
-    {/* Calendar grid */}
-    <div style={{background:"rgba(255,255,255,0.02)",borderRadius:16,border:"1px solid rgba(255,255,255,0.06)",overflow:"hidden",boxShadow:"0 4px 30px rgba(0,0,0,0.3)"}}>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",background:"rgba(0,0,0,0.3)"}}>
-        {WEEKDAYS.map((d,i)=><div key={i} style={{padding:"10px 0",textAlign:"center",fontSize:11,fontWeight:800,color:i===0||i===6?"#F87171":"#475569",letterSpacing:"1px"}}>{d}</div>)}
+    {/* Calendar Grid */}
+    <div style={{background:"#FFF",borderRadius:16,border:"1px solid #E2E8F0",overflow:"hidden",boxShadow:"0 2px 8px rgba(0,0,0,0.06)"}}>
+      {/* Weekday header */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",background:"#F8FAFC",borderBottom:"1px solid #E8ECF1"}}>
+        {WEEKDAYS.map((d,i)=><div key={i} style={{padding:"10px 0",textAlign:"center",fontSize:11,fontWeight:800,color:i===0||i===6?"#DC2626":"#64748B",letterSpacing:"1px"}}>{d}</div>)}
       </div>
+      {/* Days grid */}
       <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)"}}>
         {cells.map((day,i)=>{
           const items=getItems(day);
@@ -348,22 +316,23 @@ function CalendarView({monthKey,data,allData,setAllData,selectedDay,onDayClick,f
             onClick={()=>day&&items.length>0&&!dragging&&onDayClick(isSel?null:day)}
             className={isDragOver?"drag-over-day":""}
             style={{
-              minHeight:72,padding:4,
-              borderRight:"1px solid rgba(255,255,255,0.03)",
-              borderBottom:"1px solid rgba(255,255,255,0.03)",
+              minHeight:76,padding:4,
+              borderRight:"1px solid #F1F5F9",
+              borderBottom:"1px solid #F1F5F9",
               cursor:day&&items.length>0?"pointer":"default",
               transition:"background .15s",
-              background:isDragOver?"rgba(56,189,248,0.12)":isSel?"rgba(59,130,246,0.12)":level>=3?"rgba(239,68,68,0.05)":!day?"rgba(0,0,0,0.1)":isW?"rgba(0,0,0,0.05)":"transparent",
-              opacity:isSourceDay?.4:1,
+              background:isDragOver?"#EFF6FF":isSel?"#EFF6FF":level>=3?"#FEF2F2":!day?"#FAFAFA":isW?"#FEFCE8":"#FFF",
+              opacity:isSourceDay?.35:1,
               position:"relative"
             }}>
             {day&&<>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:2}}>
                 <span style={{
                   fontSize:13,fontWeight:isToday(day)?900:700,
-                  color:isToday(day)?"#38BDF8":!items.length?"#374151":isW?"#F87171":"#CBD5E1",
-                  background:isToday(day)?"rgba(56,189,248,0.15)":"none",
-                  borderRadius:6,padding:isToday(day)?"0 4px":"0",
+                  color:isToday(day)?"#FFF":!items.length?"#94A3B8":isW?"#DC2626":"#334155",
+                  background:isToday(day)?"#2563EB":"none",
+                  borderRadius:6,padding:isToday(day)?"0 5px":"0",
+                  lineHeight:isToday(day)?"20px":"normal"
                 }}>{day}</span>
                 {level>0&&<Badge count={level}/>}
               </div>
@@ -374,9 +343,9 @@ function CalendarView({monthKey,data,allData,setAllData,selectedDay,onDayClick,f
                   style={{cursor:"grab",touchAction:"none"}}
                 >
                   <Pill cidade={item.c} micro/>
-                  <div style={{fontSize:7,color:"rgba(255,255,255,0.45)",paddingLeft:4,lineHeight:1.2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.m}</div>
+                  <div style={{fontSize:7,color:"#94A3B8",paddingLeft:3,lineHeight:1.2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.m}</div>
                 </div>)}
-                {items.length>3&&<div style={{fontSize:8,color:"#64748B",fontWeight:700,paddingLeft:4}}>+{items.length-3}</div>}
+                {items.length>3&&<div style={{fontSize:8,color:"#94A3B8",fontWeight:700,paddingLeft:3}}>+{items.length-3}</div>}
               </div>
             </>}
           </div>;
@@ -386,33 +355,26 @@ function CalendarView({monthKey,data,allData,setAllData,selectedDay,onDayClick,f
 
     {/* Day detail bottom sheet */}
     {selectedDay&&getItems(selectedDay).length>0&&<DayDetail
-      day={selectedDay}
-      items={getItems(selectedDay)}
-      rawItems={sch[selectedDay]||[]}
-      monthKey={monthKey}
-      data={data}
-      allData={allData}
-      setAllData={setAllData}
-      onClose={()=>onDayClick(null)}
-      showToast={showToast}
+      day={selectedDay} items={getItems(selectedDay)} rawItems={sch[selectedDay]||[]}
+      monthKey={monthKey} data={data} allData={allData} setAllData={setAllData}
+      onClose={()=>onDayClick(null)} showToast={showToast}
     />}
   </div>;
 }
 
-/* ═══════════════════════════════ DAY DETAIL BOTTOM SHEET ═══════════════════════════════ */
+/* ═══════ DAY DETAIL BOTTOM SHEET ═══════ */
 function DayDetail({day,items,rawItems,monthKey,data,allData,setAllData,onClose,showToast}){
   const{year,month}=parseKey(monthKey);
   const dayName=WEEKDAYS_FULL[new Date(year,month-1,day).getDay()];
 
   const removeEntry=(idx)=>{
     const nd=clone(allData);
-    const actualIdx=nd[monthKey].schedule[day].findIndex(i=>i.c===rawItems[idx].c&&i.m===rawItems[idx].m);
-    if(actualIdx>-1){
-      nd[monthKey].schedule[day].splice(actualIdx,1);
+    const ai=nd[monthKey].schedule[day].findIndex(i=>i.c===rawItems[idx].c&&i.m===rawItems[idx].m);
+    if(ai>-1){
+      nd[monthKey].schedule[day].splice(ai,1);
       if(!nd[monthKey].schedule[day].length)delete nd[monthKey].schedule[day];
-      setAllData(nd);
-      showToast("Removido","success");
-      if(!nd[monthKey].schedule[day]||nd[monthKey].schedule[day].length===0)onClose();
+      setAllData(nd);showToast("Removido","success");
+      if(!nd[monthKey].schedule[day]||!nd[monthKey].schedule[day].length)onClose();
     }
   };
 
@@ -421,38 +383,40 @@ function DayDetail({day,items,rawItems,monthKey,data,allData,setAllData,onClose,
     <div className="bottom-sheet">
       <div className="bottom-sheet-handle"/>
       <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
-        <div style={{fontSize:36,fontWeight:900,color:"#38BDF8",lineHeight:1}}>{day}</div>
-        <div>
-          <div style={{fontSize:16,fontWeight:800}}>{dayName} — {data.label}</div>
-          <div style={{fontSize:12,color:"#64748B"}}>{items.length} atendimento(s)</div>
+        <div style={{width:52,height:52,borderRadius:14,background:"#EFF6FF",display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <span style={{fontSize:24,fontWeight:900,color:"#2563EB"}}>{day}</span>
         </div>
-        <button onClick={onClose} style={{marginLeft:"auto",background:"rgba(255,255,255,0.06)",border:"none",borderRadius:10,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",color:"#94A3B8",fontSize:18}}>✕</button>
+        <div style={{flex:1}}>
+          <div style={{fontSize:16,fontWeight:800,color:"#1E293B"}}>{dayName} — {data.label}</div>
+          <div style={{fontSize:12,color:"#94A3B8"}}>{items.length} atendimento(s)</div>
+        </div>
+        <button onClick={onClose} style={{background:"#F1F5F9",border:"none",borderRadius:10,width:36,height:36,cursor:"pointer",color:"#64748B",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
       </div>
-      <div style={{display:"flex",flexDirection:"column",gap:6}}>
-        {items.map((item,j)=><div key={j} className="scale-in" style={{
-          display:"flex",alignItems:"center",gap:12,
-          background:"rgba(0,0,0,0.2)",borderRadius:12,padding:"12px 16px",
-          borderLeft:`4px solid ${(CIDADES_COLORS[item.c]||{bg:"#666"}).bg}`,
-          animationDelay:`${j*50}ms`,animationFillMode:"backwards"
-        }}>
-          <div style={{width:10,height:10,borderRadius:"50%",background:(CIDADES_COLORS[item.c]||{bg:"#666"}).bg,flexShrink:0,boxShadow:`0 0 8px ${(CIDADES_COLORS[item.c]||{glow:"rgba(100,100,100,0.3)"}).glow}`}}/>
-          <div style={{flex:1,minWidth:0}}>
-            <div style={{fontSize:14,fontWeight:700}}>{item.c}</div>
-            <div style={{fontSize:12,color:"#94A3B8"}}>Dr(a) {item.m}</div>
-          </div>
-          <div style={{display:"flex",gap:6}}>
-            <button onClick={()=>removeEntry(j)} style={{background:"rgba(239,68,68,0.1)",border:"none",borderRadius:8,width:34,height:34,cursor:"pointer",color:"#EF4444",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>🗑</button>
-          </div>
-        </div>)}
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        {items.map((item,j)=>{
+          const col=CIDADES_COLORS[item.c]||{bg:"#666",light:"#EEE"};
+          return <div key={j} className="scale-in" style={{
+            display:"flex",alignItems:"center",gap:12,
+            background:col.light,borderRadius:12,padding:"12px 16px",
+            borderLeft:`4px solid ${col.bg}`,
+            animationDelay:`${j*50}ms`,animationFillMode:"backwards"
+          }}>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontSize:14,fontWeight:700,color:col.bg}}>{item.c}</div>
+              <div style={{fontSize:12,color:"#64748B"}}>Dr(a) {item.m}</div>
+            </div>
+            <button onClick={()=>removeEntry(j)} style={{background:"rgba(220,38,38,0.08)",border:"none",borderRadius:8,width:34,height:34,cursor:"pointer",color:"#DC2626",fontSize:13,display:"flex",alignItems:"center",justifyContent:"center"}}>🗑</button>
+          </div>;
+        })}
       </div>
-      <div style={{marginTop:12,padding:"10px 0",textAlign:"center"}}>
-        <span style={{fontSize:11,color:"#475569"}}>↕ Segure e arraste itens no calendário para mover</span>
+      <div style={{marginTop:14,textAlign:"center"}}>
+        <span style={{fontSize:11,color:"#94A3B8"}}>↕ Segure e arraste itens no calendário para mover</span>
       </div>
     </div>
   </>;
 }
 
-/* ═══════════════════════════════ MÉDICOS VIEW ═══════════════════════════════ */
+/* ═══════ MÉDICOS VIEW ═══════ */
 function MedicosView({allData,filterCidade,filterMedico}){
   const medicoMap={};
   Object.entries(allData).forEach(([mk,md])=>{
@@ -467,41 +431,36 @@ function MedicosView({allData,filterCidade,filterMedico}){
       });
     });
   });
-
   const sorted=Object.entries(medicoMap).sort((a,b)=>{
-    const tA=Object.values(a[1].meses).reduce((s,arr)=>s+arr.length,0);
-    const tB=Object.values(b[1].meses).reduce((s,arr)=>s+arr.length,0);
+    const tA=Object.values(a[1].meses).reduce((s,a)=>s+a.length,0);
+    const tB=Object.values(b[1].meses).reduce((s,a)=>s+a.length,0);
     return tB-tA;
   });
   const mks=Object.keys(allData).sort();
 
   return <div className="fade-in">
-    {sorted.length===0&&<div style={{textAlign:"center",padding:40,color:"#475569"}}>Nenhum médico encontrado.</div>}
+    {sorted.length===0&&<div style={{textAlign:"center",padding:40,color:"#94A3B8"}}>Nenhum médico encontrado.</div>}
     {sorted.map(([nome,info],idx)=>{
       const total=Object.values(info.meses).reduce((s,a)=>s+a.length,0);
-      return <div key={nome} className="scale-in" style={{
-        background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",
-        borderRadius:14,padding:16,marginBottom:10,
-        animationDelay:`${idx*40}ms`,animationFillMode:"backwards"
-      }}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-          <div>
-            <div style={{fontSize:15,fontWeight:800}}>👨‍⚕️ {nome}</div>
-            <div style={{display:"flex",gap:4,marginTop:4,flexWrap:"wrap"}}>{[...info.cidades].map(c=><Pill key={c} cidade={c} small/>)}</div>
+      return <div key={nome} className="card scale-in" style={{marginBottom:10,animationDelay:`${idx*40}ms`,animationFillMode:"backwards"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontSize:15,fontWeight:800,color:"#1E293B"}}>👨‍⚕️ {nome}</div>
+            <div style={{display:"flex",gap:4,marginTop:5,flexWrap:"wrap"}}>{[...info.cidades].map(c=><Pill key={c} cidade={c} small/>)}</div>
           </div>
-          <div style={{background:"rgba(56,189,248,0.1)",borderRadius:10,padding:"6px 14px",textAlign:"center"}}>
-            <div style={{fontSize:20,fontWeight:900,color:"#38BDF8"}}>{total}</div>
-            <div style={{fontSize:8,color:"#64748B",fontWeight:700}}>TOTAL</div>
+          <div style={{background:"#EFF6FF",borderRadius:10,padding:"6px 14px",textAlign:"center",flexShrink:0}}>
+            <div style={{fontSize:20,fontWeight:900,color:"#2563EB"}}>{total}</div>
+            <div style={{fontSize:8,color:"#94A3B8",fontWeight:700}}>TOTAL</div>
           </div>
         </div>
         <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
           {mks.map(mk=>{
             const dias=(info.meses[mk]||[]).sort((a,b)=>a-b);
             if(!dias.length)return null;
-            return <div key={mk} style={{background:"rgba(0,0,0,0.15)",borderRadius:8,padding:"6px 10px",flex:"1 1 auto",minWidth:100}}>
-              <div style={{fontSize:10,fontWeight:800,color:"#64748B",marginBottom:3}}>{allData[mk].label}</div>
-              <div style={{fontSize:13,fontWeight:800,color:"#38BDF8"}}>{dias.length}d</div>
-              <div style={{fontSize:9,color:"#64748B",marginTop:2}}>Dias: {dias.join(", ")}</div>
+            return <div key={mk} style={{background:"#F8FAFC",borderRadius:8,padding:"6px 10px",flex:"1 1 auto",minWidth:90,border:"1px solid #F1F5F9"}}>
+              <div style={{fontSize:10,fontWeight:800,color:"#94A3B8",marginBottom:3}}>{allData[mk].label}</div>
+              <div style={{fontSize:14,fontWeight:800,color:"#2563EB"}}>{dias.length}d</div>
+              <div style={{fontSize:9,color:"#94A3B8",marginTop:2}}>Dias: {dias.join(", ")}</div>
             </div>;
           })}
         </div>
@@ -510,7 +469,7 @@ function MedicosView({allData,filterCidade,filterMedico}){
   </div>;
 }
 
-/* ═══════════════════════════════ EDITOR VIEW ═══════════════════════════════ */
+/* ═══════ EDITOR ═══════ */
 function EditorView({allData,setAllData,allMedicos,showToast}){
   const[editMonth,setEditMonth]=useState(Object.keys(allData).sort()[0]||"");
   const[editDay,setEditDay]=useState("");
@@ -519,25 +478,21 @@ function EditorView({allData,setAllData,allMedicos,showToast}){
   const[showNew,setShowNew]=useState(false);
   const[newY,setNewY]=useState("2026");
   const[newM,setNewM]=useState("5");
-  const[editingEntry,setEditingEntry]=useState(null); // {monthKey,day,idx}
+  const[editingEntry,setEditingEntry]=useState(null);
   const[editEntryMedico,setEditEntryMedico]=useState("");
   const[editEntryCidade,setEditEntryCidade]=useState("");
   const jsonRef=useRef(null);
 
-  const IS={padding:"10px 14px",borderRadius:10,border:"1px solid rgba(255,255,255,0.12)",background:"rgba(255,255,255,0.06)",color:"#E2E8F0",fontSize:14,outline:"none",width:"100%"};
-  const BS={padding:"10px 18px",borderRadius:10,border:"none",cursor:"pointer",fontSize:13,fontWeight:700,transition:"all .2s"};
+  const IS={padding:"10px 14px",borderRadius:10,border:"1px solid #D1D5DB",background:"#FFF",color:"#1E293B",fontSize:14,outline:"none",width:"100%"};
+  const BS={padding:"10px 18px",borderRadius:10,border:"none",cursor:"pointer",fontSize:13,fontWeight:700,transition:"all .15s"};
 
   const addEntry=()=>{
     if(!editMonth||!editDay||!editCidade||!editMedico.trim())return;
-    const d=Number(editDay);const nd=clone(allData);
-    if(!nd[editMonth])return;
+    const d=Number(editDay);const nd=clone(allData);if(!nd[editMonth])return;
     if(!nd[editMonth].schedule[d])nd[editMonth].schedule[d]=[];
-    if(nd[editMonth].schedule[d].some(i=>i.c===editCidade&&i.m===editMedico.trim())){
-      showToast("Já existe este atendimento","error");return;
-    }
+    if(nd[editMonth].schedule[d].some(i=>i.c===editCidade&&i.m===editMedico.trim())){showToast("Já existe","error");return}
     nd[editMonth].schedule[d].push({c:editCidade,m:editMedico.trim()});
-    setAllData(nd);setEditMedico("");
-    showToast("Atendimento adicionado","success");
+    setAllData(nd);setEditMedico("");showToast("Adicionado","success");
   };
 
   const removeEntry=(mk,day,idx)=>{
@@ -549,18 +504,14 @@ function EditorView({allData,setAllData,allMedicos,showToast}){
   const startEdit=(mk,day,idx)=>{
     const item=allData[mk].schedule[day][idx];
     setEditingEntry({monthKey:mk,day,idx});
-    setEditEntryMedico(item.m);
-    setEditEntryCidade(item.c);
+    setEditEntryMedico(item.m);setEditEntryCidade(item.c);
   };
 
   const saveEdit=()=>{
     if(!editingEntry||!editEntryMedico.trim())return;
     const{monthKey:mk,day,idx}=editingEntry;
-    const nd=clone(allData);
-    nd[mk].schedule[day][idx]={c:editEntryCidade,m:editEntryMedico.trim()};
-    setAllData(nd);
-    setEditingEntry(null);
-    showToast("Atualizado","success");
+    const nd=clone(allData);nd[mk].schedule[day][idx]={c:editEntryCidade,m:editEntryMedico.trim()};
+    setAllData(nd);setEditingEntry(null);showToast("Atualizado","success");
   };
 
   const addMonth=()=>{
@@ -568,29 +519,26 @@ function EditorView({allData,setAllData,allMedicos,showToast}){
     if(m<1||m>12||y<2024||y>2030)return;
     const key=makeKey(y,m);if(allData[key]){showToast("Mês já existe","error");return}
     const nd=clone(allData);nd[key]={label:`${MN[m]} ${y}`,schedule:{}};
-    setAllData(nd);setEditMonth(key);setShowNew(false);
-    showToast("Mês criado","success");
+    setAllData(nd);setEditMonth(key);setShowNew(false);showToast("Mês criado","success");
   };
 
   const removeMonth=k=>{
     if(!confirm(`Remover ${allData[k].label}?`))return;
     const nd=clone(allData);delete nd[k];setAllData(nd);
-    const rem=Object.keys(nd).sort();setEditMonth(rem[0]||"");
-    showToast("Mês removido","success");
+    setEditMonth(Object.keys(nd).sort()[0]||"");showToast("Mês removido","success");
   };
 
   const exportJSON=()=>{
     const blob=new Blob([JSON.stringify(allData,null,2)],{type:"application/json"});
-    const a=document.createElement("a");a.href=URL.createObjectURL(blob);
-    a.download="inovamed_escalas.json";a.click();
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="inovamed_escalas.json";a.click();
     showToast("JSON exportado","success");
   };
 
   const importJSON=e=>{
     const file=e.target.files[0];if(!file)return;
-    const reader=new FileReader();
-    reader.onload=()=>{try{setAllData(JSON.parse(reader.result));showToast("Dados importados!","success")}catch{showToast("JSON inválido","error")}};
-    reader.readAsText(file);e.target.value="";
+    const r=new FileReader();
+    r.onload=()=>{try{setAllData(JSON.parse(r.result));showToast("Importado!","success")}catch{showToast("JSON inválido","error")}};
+    r.readAsText(file);e.target.value="";
   };
 
   const mks=Object.keys(allData).sort();
@@ -599,62 +547,47 @@ function EditorView({allData,setAllData,allMedicos,showToast}){
 
   return <div className="fade-in">
     {/* Add form */}
-    <div style={{background:"rgba(255,255,255,0.03)",borderRadius:16,border:"1px solid rgba(255,255,255,0.08)",padding:20,marginBottom:16}}>
-      <h3 style={{fontSize:16,fontWeight:800,marginBottom:16,display:"flex",alignItems:"center",gap:8}}>
-        <span style={{fontSize:20}}>➕</span>Adicionar Atendimento
+    <div className="card" style={{marginBottom:14}}>
+      <h3 style={{fontSize:15,fontWeight:800,marginBottom:14,display:"flex",alignItems:"center",gap:8,color:"#1E293B"}}>
+        <span style={{fontSize:18}}>➕</span>Adicionar Atendimento
       </h3>
-
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
         <div>
-          <label style={{fontSize:11,color:"#64748B",fontWeight:700,display:"block",marginBottom:4}}>MÊS</label>
+          <label style={{fontSize:11,color:"#94A3B8",fontWeight:700,display:"block",marginBottom:4}}>MÊS</label>
           <select value={editMonth} onChange={e=>setEditMonth(e.target.value)} style={IS}>
             {mks.map(k=><option key={k} value={k}>{allData[k].label}</option>)}
           </select>
         </div>
         <div>
-          <label style={{fontSize:11,color:"#64748B",fontWeight:700,display:"block",marginBottom:4}}>DIA</label>
+          <label style={{fontSize:11,color:"#94A3B8",fontWeight:700,display:"block",marginBottom:4}}>DIA</label>
           <input type="number" min="1" max="31" value={editDay} onChange={e=>setEditDay(e.target.value)} placeholder="1-31" style={IS}/>
         </div>
       </div>
-
       <div style={{marginBottom:10}}>
-        <label style={{fontSize:11,color:"#64748B",fontWeight:700,display:"block",marginBottom:4}}>MUNICÍPIO</label>
+        <label style={{fontSize:11,color:"#94A3B8",fontWeight:700,display:"block",marginBottom:4}}>MUNICÍPIO</label>
         <select value={editCidade} onChange={e=>setEditCidade(e.target.value)} style={IS}>
           {Object.keys(CIDADES_COLORS).map(c=><option key={c} value={c}>{c}</option>)}
         </select>
       </div>
-
       <div style={{marginBottom:14}}>
-        <label style={{fontSize:11,color:"#64748B",fontWeight:700,display:"block",marginBottom:4}}>MÉDICO(A)</label>
-        <AutocompleteInput
-          value={editMedico}
-          onChange={setEditMedico}
-          suggestions={allMedicos}
-          placeholder="Selecione ou digite um novo nome..."
-          onSelect={v=>setEditMedico(v)}
-          onSubmit={addEntry}
-        />
-        <div style={{fontSize:10,color:"#475569",marginTop:4}}>
-          💡 Selecione um médico cadastrado ou digite um novo nome
-        </div>
+        <label style={{fontSize:11,color:"#94A3B8",fontWeight:700,display:"block",marginBottom:4}}>MÉDICO(A)</label>
+        <AutocompleteInput value={editMedico} onChange={setEditMedico} suggestions={allMedicos}
+          placeholder="Selecione ou digite novo nome..." onSelect={v=>setEditMedico(v)} onSubmit={addEntry}/>
+        <div style={{fontSize:10,color:"#94A3B8",marginTop:4}}>💡 Selecione cadastrado ou digite novo</div>
       </div>
+      <button onClick={addEntry} className="touch-btn" style={{...BS,background:"#16A34A",color:"#FFF",width:"100%",fontSize:14,boxShadow:"0 2px 8px rgba(22,163,74,0.25)"}}>+ Adicionar</button>
 
-      <button onClick={addEntry} className="touch-btn" style={{...BS,background:"linear-gradient(135deg,#22C55E,#16A34A)",color:"#FFF",width:"100%",display:"flex",alignItems:"center",justifyContent:"center",gap:8,fontSize:14,boxShadow:"0 4px 16px rgba(34,197,94,0.3)"}}>
-        <span style={{fontSize:18}}>+</span> Adicionar Atendimento
-      </button>
-
-      {/* New month */}
-      <div style={{marginTop:16,paddingTop:16,borderTop:"1px solid rgba(255,255,255,0.06)"}}>
+      <div style={{marginTop:16,paddingTop:14,borderTop:"1px solid #F1F5F9"}}>
         {!showNew?
-          <button onClick={()=>setShowNew(true)} className="touch-btn" style={{...BS,background:"rgba(255,255,255,0.05)",color:"#94A3B8",width:"100%"}}>📅 Criar Novo Mês</button>:
+          <button onClick={()=>setShowNew(true)} className="touch-btn" style={{...BS,background:"#F8FAFC",color:"#64748B",width:"100%",border:"1px solid #E2E8F0"}}>📅 Criar Novo Mês</button>:
           <div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
-              <div><label style={{fontSize:11,color:"#64748B",fontWeight:700,display:"block",marginBottom:4}}>ANO</label><input type="number" value={newY} onChange={e=>setNewY(e.target.value)} style={IS}/></div>
-              <div><label style={{fontSize:11,color:"#64748B",fontWeight:700,display:"block",marginBottom:4}}>MÊS</label><select value={newM} onChange={e=>setNewM(e.target.value)} style={IS}>{MN.slice(1).map((n,i)=><option key={i+1} value={i+1}>{n}</option>)}</select></div>
+              <div><label style={{fontSize:11,color:"#94A3B8",fontWeight:700,display:"block",marginBottom:4}}>ANO</label><input type="number" value={newY} onChange={e=>setNewY(e.target.value)} style={IS}/></div>
+              <div><label style={{fontSize:11,color:"#94A3B8",fontWeight:700,display:"block",marginBottom:4}}>MÊS</label><select value={newM} onChange={e=>setNewM(e.target.value)} style={IS}>{MN.slice(1).map((n,i)=><option key={i+1} value={i+1}>{n}</option>)}</select></div>
             </div>
             <div style={{display:"flex",gap:8}}>
-              <button onClick={addMonth} className="touch-btn" style={{...BS,background:"#22C55E",color:"#FFF",flex:1}}>Criar</button>
-              <button onClick={()=>setShowNew(false)} className="touch-btn" style={{...BS,background:"rgba(255,255,255,0.06)",color:"#94A3B8",flex:1}}>Cancelar</button>
+              <button onClick={addMonth} className="touch-btn" style={{...BS,background:"#16A34A",color:"#FFF",flex:1}}>Criar</button>
+              <button onClick={()=>setShowNew(false)} className="touch-btn" style={{...BS,background:"#F1F5F9",color:"#64748B",flex:1}}>Cancelar</button>
             </div>
           </div>
         }
@@ -662,69 +595,67 @@ function EditorView({allData,setAllData,allMedicos,showToast}){
     </div>
 
     {/* Entries list */}
-    <div style={{background:"rgba(255,255,255,0.03)",borderRadius:16,border:"1px solid rgba(255,255,255,0.08)",padding:20,marginBottom:16}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-        <h3 style={{fontSize:16,fontWeight:800,display:"flex",alignItems:"center",gap:8}}>
-          <span style={{fontSize:20}}>📋</span>{allData[editMonth]?.label||""}
+    <div className="card" style={{marginBottom:14}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+        <h3 style={{fontSize:15,fontWeight:800,display:"flex",alignItems:"center",gap:8,color:"#1E293B"}}>
+          <span style={{fontSize:18}}>📋</span>{allData[editMonth]?.label||""}
         </h3>
-        <button onClick={()=>removeMonth(editMonth)} style={{...BS,background:"rgba(239,68,68,0.1)",color:"#EF4444",fontSize:11,padding:"6px 12px"}}>🗑 Remover</button>
+        <button onClick={()=>removeMonth(editMonth)} style={{...BS,background:"#FEF2F2",color:"#DC2626",fontSize:11,padding:"6px 12px",border:"1px solid #FCA5A5"}}>🗑 Remover</button>
       </div>
 
-      {sortDays.length===0&&<p style={{color:"#475569",fontSize:13,textAlign:"center",padding:20}}>Nenhum atendimento neste mês.</p>}
+      {sortDays.length===0&&<p style={{color:"#94A3B8",fontSize:13,textAlign:"center",padding:20}}>Nenhum atendimento.</p>}
 
-      {sortDays.map(day=><div key={day} style={{marginBottom:12}}>
-        <div style={{fontSize:11,fontWeight:800,color:"#475569",marginBottom:6,display:"flex",alignItems:"center",gap:6}}>
-          <span style={{background:"rgba(56,189,248,0.1)",color:"#38BDF8",padding:"2px 8px",borderRadius:6}}>DIA {day}</span>
-          <span style={{color:"#374151"}}>{WEEKDAYS_FULL[new Date(parseKey(editMonth).year,parseKey(editMonth).month-1,day).getDay()]}</span>
-        </div>
-        {curSch[day].map((item,idx)=><div key={idx} style={{
-          display:"flex",alignItems:"center",gap:10,
-          background:"rgba(0,0,0,0.15)",borderRadius:10,padding:"10px 12px",marginBottom:4,
-          borderLeft:`3px solid ${(CIDADES_COLORS[item.c]||{bg:"#666"}).bg}`
-        }}>
-          {editingEntry&&editingEntry.monthKey===editMonth&&editingEntry.day===day&&editingEntry.idx===idx?
-            <div style={{flex:1,display:"flex",flexDirection:"column",gap:6}}>
-              <select value={editEntryCidade} onChange={e=>setEditEntryCidade(e.target.value)} style={{padding:"6px 10px",borderRadius:8,border:"1px solid rgba(255,255,255,0.15)",background:"rgba(255,255,255,0.08)",color:"#E2E8F0",fontSize:12}}>
-                {Object.keys(CIDADES_COLORS).map(c=><option key={c} value={c}>{c}</option>)}
-              </select>
-              <AutocompleteInput
-                value={editEntryMedico}
-                onChange={setEditEntryMedico}
-                suggestions={allMedicos}
-                placeholder="Médico(a)..."
-                onSelect={v=>setEditEntryMedico(v)}
-                onSubmit={saveEdit}
-              />
-              <div style={{display:"flex",gap:6}}>
-                <button onClick={saveEdit} style={{padding:"6px 12px",borderRadius:6,border:"none",background:"#22C55E",color:"#FFF",fontSize:11,fontWeight:700,cursor:"pointer",flex:1}}>Salvar</button>
-                <button onClick={()=>setEditingEntry(null)} style={{padding:"6px 12px",borderRadius:6,border:"none",background:"rgba(255,255,255,0.08)",color:"#94A3B8",fontSize:11,fontWeight:700,cursor:"pointer",flex:1}}>Cancelar</button>
-              </div>
-            </div>:
-            <>
-              <div style={{flex:1,display:"flex",alignItems:"center",gap:8,minWidth:0}}>
-                <Pill cidade={item.c} small/>
-                <span style={{fontSize:12,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.m}</span>
-              </div>
-              <button onClick={()=>startEdit(editMonth,day,idx)} style={{background:"none",border:"none",color:"#38BDF8",cursor:"pointer",fontSize:14,padding:"4px 6px"}}>✏️</button>
-              <button onClick={()=>removeEntry(editMonth,day,idx)} style={{background:"none",border:"none",color:"#EF4444",cursor:"pointer",fontSize:16,padding:"4px 6px",lineHeight:1}}>×</button>
-            </>
-          }
-        </div>)}
-      </div>)}
+      {sortDays.map(day=>{
+        const{year:py,month:pm}=parseKey(editMonth);
+        const dn=WEEKDAYS_FULL[new Date(py,pm-1,day).getDay()];
+        return <div key={day} style={{marginBottom:12}}>
+          <div style={{fontSize:11,fontWeight:800,color:"#94A3B8",marginBottom:6,display:"flex",alignItems:"center",gap:6}}>
+            <span style={{background:"#EFF6FF",color:"#2563EB",padding:"2px 8px",borderRadius:6,fontWeight:800}}>DIA {day}</span>
+            <span style={{color:"#CBD5E1"}}>{dn}</span>
+          </div>
+          {curSch[day].map((item,idx)=><div key={idx} style={{
+            display:"flex",alignItems:"center",gap:10,
+            background:"#F8FAFC",borderRadius:10,padding:"10px 12px",marginBottom:4,
+            borderLeft:`3px solid ${(CIDADES_COLORS[item.c]||{bg:"#666"}).bg}`
+          }}>
+            {editingEntry&&editingEntry.monthKey===editMonth&&editingEntry.day===day&&editingEntry.idx===idx?
+              <div style={{flex:1,display:"flex",flexDirection:"column",gap:6}}>
+                <select value={editEntryCidade} onChange={e=>setEditEntryCidade(e.target.value)} style={{padding:"8px 10px",borderRadius:8,border:"1px solid #D1D5DB",background:"#FFF",color:"#1E293B",fontSize:12}}>
+                  {Object.keys(CIDADES_COLORS).map(c=><option key={c} value={c}>{c}</option>)}
+                </select>
+                <AutocompleteInput value={editEntryMedico} onChange={setEditEntryMedico} suggestions={allMedicos}
+                  placeholder="Médico(a)..." onSelect={v=>setEditEntryMedico(v)} onSubmit={saveEdit}/>
+                <div style={{display:"flex",gap:6}}>
+                  <button onClick={saveEdit} style={{padding:"7px 12px",borderRadius:8,border:"none",background:"#16A34A",color:"#FFF",fontSize:12,fontWeight:700,cursor:"pointer",flex:1}}>Salvar</button>
+                  <button onClick={()=>setEditingEntry(null)} style={{padding:"7px 12px",borderRadius:8,border:"1px solid #E2E8F0",background:"#FFF",color:"#64748B",fontSize:12,fontWeight:700,cursor:"pointer",flex:1}}>Cancelar</button>
+                </div>
+              </div>:
+              <>
+                <div style={{flex:1,display:"flex",alignItems:"center",gap:8,minWidth:0}}>
+                  <Pill cidade={item.c} small/>
+                  <span style={{fontSize:12,color:"#334155",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.m}</span>
+                </div>
+                <button onClick={()=>startEdit(editMonth,day,idx)} style={{background:"none",border:"none",color:"#2563EB",cursor:"pointer",fontSize:13,padding:"4px"}}>✏️</button>
+                <button onClick={()=>removeEntry(editMonth,day,idx)} style={{background:"none",border:"none",color:"#DC2626",cursor:"pointer",fontSize:16,padding:"4px",lineHeight:1}}>×</button>
+              </>
+            }
+          </div>)}
+        </div>;
+      })}
     </div>
 
     {/* Export/Import */}
     <div style={{display:"flex",gap:8}}>
-      <button onClick={exportJSON} className="touch-btn" style={{...BS,background:"rgba(255,255,255,0.05)",color:"#94A3B8",flex:1}}>💾 Exportar</button>
-      <label className="touch-btn" style={{...BS,background:"rgba(255,255,255,0.05)",color:"#94A3B8",flex:1,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>📂 Importar<input ref={jsonRef} type="file" accept=".json" onChange={importJSON} style={{display:"none"}}/></label>
+      <button onClick={exportJSON} className="touch-btn" style={{...BS,background:"#FFF",color:"#64748B",flex:1,border:"1px solid #E2E8F0"}}>💾 Exportar</button>
+      <label className="touch-btn" style={{...BS,background:"#FFF",color:"#64748B",flex:1,border:"1px solid #E2E8F0",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>📂 Importar<input ref={jsonRef} type="file" accept=".json" onChange={importJSON} style={{display:"none"}}/></label>
     </div>
   </div>;
 }
 
-/* ═══════════════════════════════ MAIN APP ═══════════════════════════════ */
+/* ═══════ MAIN APP ═══════ */
 function App(){
   const[allData,setAllData]=useState(()=>{
-    try{const s=localStorage.getItem("inovamed_v3");if(s)return JSON.parse(s)}catch{}return INITIAL_DATA;
+    try{const s=localStorage.getItem(LS_KEY);if(s)return JSON.parse(s)}catch{}return INITIAL_DATA;
   });
   const[tab,setTab]=useState("calendario");
   const[activeMonth,setActiveMonth]=useState(()=>Object.keys(allData).sort()[0]||"");
@@ -734,13 +665,10 @@ function App(){
   const[toast,setToast]=useState(null);
   const toastTimer=useRef(null);
 
-  const showToast=(msg,type="info")=>{
-    setToast({msg,type});
-    clearTimeout(toastTimer.current);
-    toastTimer.current=setTimeout(()=>setToast(null),2000);
-  };
+  const showToast=(msg,type="info")=>{setToast({msg,type});clearTimeout(toastTimer.current);toastTimer.current=setTimeout(()=>setToast(null),2000)};
 
-  useEffect(()=>{try{localStorage.setItem("inovamed_v3",JSON.stringify(allData))}catch{}},[allData]);
+  // Salva no localStorage a cada alteração
+  useEffect(()=>{try{localStorage.setItem(LS_KEY,JSON.stringify(allData))}catch(e){console.error("Erro ao salvar:",e)}},[allData]);
   useEffect(()=>{const ks=Object.keys(allData).sort();if(!ks.includes(activeMonth)&&ks.length)setActiveMonth(ks[0])},[allData]);
 
   const allMedicos=useMemo(()=>{
@@ -756,69 +684,68 @@ function App(){
 
     {/* Header */}
     <div style={{textAlign:"center",marginBottom:20}}>
-      <div style={{fontSize:11,fontWeight:800,letterSpacing:"3px",color:"#475569",marginBottom:4}}>INOVAMED</div>
-      <h1 style={{fontSize:22,fontWeight:900,letterSpacing:"-.5px",background:"linear-gradient(135deg,#38BDF8,#818CF8,#A78BFA)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>Escalas Médicas</h1>
+      <div style={{display:"inline-flex",alignItems:"center",gap:6,marginBottom:4}}>
+        <div style={{width:8,height:8,borderRadius:"50%",background:"#2563EB"}}/>
+        <span style={{fontSize:11,fontWeight:800,letterSpacing:"3px",color:"#94A3B8"}}>INOVAMED</span>
+        <div style={{width:8,height:8,borderRadius:"50%",background:"#7C3AED"}}/>
+      </div>
+      <h1 style={{fontSize:22,fontWeight:900,letterSpacing:"-.5px",color:"#1E293B"}}>Escalas Médicas</h1>
     </div>
 
     {/* Tab bar */}
-    <div style={{display:"flex",gap:4,marginBottom:16,background:"rgba(255,255,255,0.03)",borderRadius:14,padding:4}}>
+    <div style={{display:"flex",gap:4,marginBottom:16,background:"#FFF",borderRadius:14,padding:4,border:"1px solid #E8ECF1",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"}}>
       {[["calendario","📅","Calendário"],["medicos","👨‍⚕️","Médicos"],["editar","✏️","Editar"]].map(([id,icon,label])=>
         <button key={id} onClick={()=>{setTab(id);setSelectedDay(null)}} className="touch-btn" style={{
           flex:1,padding:"10px 8px",borderRadius:10,border:"none",cursor:"pointer",
           fontSize:12,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",gap:5,
           transition:"all .2s",
-          background:tab===id?"linear-gradient(135deg,#3B82F6,#7C3AED)":"transparent",
-          color:tab===id?"#FFF":"#64748B",
-          boxShadow:tab===id?"0 2px 12px rgba(59,130,246,0.25)":"none"
+          background:tab===id?"#2563EB":"transparent",
+          color:tab===id?"#FFF":"#94A3B8",
+          boxShadow:tab===id?"0 2px 8px rgba(37,99,235,0.25)":"none"
         }}><span>{icon}</span>{label}</button>
       )}
     </div>
 
     {/* Month selector */}
-    {tab==="calendario"&&<div style={{display:"flex",gap:4,marginBottom:12,overflowX:"auto",paddingBottom:4,scrollbarWidth:"none",msOverflowStyle:"none",WebkitOverflowScrolling:"touch"}}>
+    {tab==="calendario"&&<div style={{display:"flex",gap:4,marginBottom:12,overflowX:"auto",paddingBottom:4,WebkitOverflowScrolling:"touch"}}>
       {mks.map(mk=><button key={mk} onClick={()=>{setActiveMonth(mk);setSelectedDay(null)}} className="touch-btn" style={{
         padding:"8px 16px",borderRadius:10,border:"none",cursor:"pointer",
-        fontSize:12,fontWeight:700,transition:"all .2s",whiteSpace:"nowrap",flexShrink:0,
-        background:activeMonth===mk?"rgba(56,189,248,0.15)":"rgba(255,255,255,0.04)",
-        color:activeMonth===mk?"#38BDF8":"#64748B",
-        border:activeMonth===mk?"1px solid rgba(56,189,248,0.2)":"1px solid transparent"
+        fontSize:12,fontWeight:700,whiteSpace:"nowrap",flexShrink:0,transition:"all .2s",
+        background:activeMonth===mk?"#2563EB":"#FFF",
+        color:activeMonth===mk?"#FFF":"#94A3B8",
+        border:activeMonth===mk?"1px solid #2563EB":"1px solid #E2E8F0",
+        boxShadow:activeMonth===mk?"0 2px 8px rgba(37,99,235,0.2)":"none"
       }}>{allData[mk].label}</button>)}
     </div>}
 
     {/* Filters */}
     {(tab==="calendario"||tab==="medicos")&&<div style={{marginBottom:14}}>
       <div style={{display:"flex",flexWrap:"wrap",gap:4,marginBottom:8}}>
-        <button onClick={()=>{setFilterCidade(null);setFilterMedico(null)}} style={{padding:"5px 10px",borderRadius:20,border:"none",cursor:"pointer",fontSize:10,fontWeight:700,background:!filterCidade&&!filterMedico?"#FFF":"rgba(255,255,255,0.05)",color:!filterCidade&&!filterMedico?"#0F172A":"#475569"}}>TODOS</button>
-        {Object.entries(CIDADES_COLORS).map(([c,colors])=><button key={c} onClick={()=>{setFilterCidade(filterCidade===c?null:c);setFilterMedico(null)}} style={{padding:"5px 10px",borderRadius:20,border:"none",cursor:"pointer",fontSize:9,fontWeight:700,background:filterCidade===c?colors.bg:"rgba(255,255,255,0.05)",color:filterCidade===c?"#FFF":"#475569"}}>{c}</button>)}
+        <button onClick={()=>{setFilterCidade(null);setFilterMedico(null)}} style={{padding:"5px 10px",borderRadius:20,border:"1px solid #E2E8F0",cursor:"pointer",fontSize:10,fontWeight:700,background:!filterCidade&&!filterMedico?"#1E293B":"#FFF",color:!filterCidade&&!filterMedico?"#FFF":"#94A3B8"}}>TODOS</button>
+        {Object.entries(CIDADES_COLORS).map(([c,colors])=><button key={c} onClick={()=>{setFilterCidade(filterCidade===c?null:c);setFilterMedico(null)}} style={{padding:"5px 10px",borderRadius:20,border:"none",cursor:"pointer",fontSize:9,fontWeight:700,background:filterCidade===c?colors.bg:colors.light,color:filterCidade===c?"#FFF":colors.bg}}>{c}</button>)}
       </div>
       <div style={{display:"flex",flexWrap:"wrap",gap:3}}>
-        {allMedicos.map(m=><button key={m} onClick={()=>{setFilterMedico(filterMedico===m?null:m);setFilterCidade(null)}} style={{padding:"3px 8px",borderRadius:12,border:`1px solid ${filterMedico===m?"#38BDF8":"rgba(255,255,255,0.06)"}`,cursor:"pointer",fontSize:9,fontWeight:600,background:filterMedico===m?"rgba(56,189,248,0.15)":"transparent",color:filterMedico===m?"#38BDF8":"#475569"}}>{m}</button>)}
+        {allMedicos.map(m=><button key={m} onClick={()=>{setFilterMedico(filterMedico===m?null:m);setFilterCidade(null)}} style={{padding:"3px 8px",borderRadius:12,border:`1px solid ${filterMedico===m?"#2563EB":"#E2E8F0"}`,cursor:"pointer",fontSize:9,fontWeight:600,background:filterMedico===m?"#DBEAFE":"#FFF",color:filterMedico===m?"#2563EB":"#94A3B8"}}>{m}</button>)}
       </div>
     </div>}
 
     {/* Legend */}
     {tab==="calendario"&&<div style={{display:"flex",justifyContent:"center",gap:12,marginBottom:14}}>
-      {[["#22C55E","1"],["#FBBF24","2"],["#EF4444","3+"]].map(([c,l],i)=><div key={i} style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:8,height:8,borderRadius:3,background:c}}/><span style={{fontSize:10,color:"#475569"}}>{l}</span></div>)}
+      {[["#16A34A","1 atend."],["#F59E0B","2 atend."],["#DC2626","3+ ⚠"]].map(([c,l],i)=><div key={i} style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:8,height:8,borderRadius:3,background:c}}/><span style={{fontSize:10,color:"#94A3B8"}}>{l}</span></div>)}
     </div>}
 
     {/* Content */}
     {tab==="calendario"&&allData[activeMonth]&&<CalendarView
-      monthKey={activeMonth}
-      data={allData[activeMonth]}
-      allData={allData}
-      setAllData={setAllData}
-      selectedDay={selectedDay}
-      onDayClick={setSelectedDay}
-      filterCidade={filterCidade}
-      filterMedico={filterMedico}
-      showToast={showToast}
-      activeMonth={activeMonth}
+      monthKey={activeMonth} data={allData[activeMonth]} allData={allData} setAllData={setAllData}
+      selectedDay={selectedDay} onDayClick={setSelectedDay}
+      filterCidade={filterCidade} filterMedico={filterMedico}
+      showToast={showToast} activeMonth={activeMonth}
     />}
     {tab==="medicos"&&<MedicosView allData={allData} filterCidade={filterCidade} filterMedico={filterMedico}/>}
     {tab==="editar"&&<EditorView allData={allData} setAllData={setAllData} allMedicos={allMedicos} showToast={showToast}/>}
 
-    <div style={{textAlign:"center",marginTop:32,padding:"16px 0",borderTop:"1px solid rgba(255,255,255,0.04)"}}>
-      <p style={{fontSize:10,color:"#334155"}}>INOVAMED — Diagnóstico por Imagem • {new Date().getFullYear()}</p>
+    <div style={{textAlign:"center",marginTop:28,padding:"14px 0",borderTop:"1px solid #E8ECF1"}}>
+      <p style={{fontSize:10,color:"#CBD5E1"}}>INOVAMED — Diagnóstico por Imagem • {new Date().getFullYear()}</p>
     </div>
   </div>;
 }
