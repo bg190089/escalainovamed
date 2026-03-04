@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
 <style>
   *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -31,6 +32,7 @@
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
   @keyframes scaleIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
   @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+  @keyframes spin{to{transform:rotate(360deg)}}
   .fade-in{animation:fadeIn .3s ease-out}
   .scale-in{animation:scaleIn .25s ease-out}
 
@@ -66,6 +68,12 @@
 <div id="root"></div>
 <script type="text/babel">
 const{useState,useEffect,useRef,useMemo,useCallback}=React;
+
+// Supabase initialization
+const SUPABASE_URL='https://aqjbwtplturuxwlmxpwb.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFxamJ3dHBsdHVydXh3bG14cHdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1MDQ1NzIsImV4cCI6MjA4ODA4MDU3Mn0.nOUYP2Io9aJl2UNd4KkB4VdjPWJm-P-hsjmKjv5yQE8';
+const EMPRESA_ID='586def29-8634-43b5-8716-d8557b82dd01';
+const supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 
 const LS_KEY="inovamed_v3"; // chave fixa — nunca muda entre versoes
 
@@ -668,9 +676,72 @@ function EditorView({allData,setAllData,allMedicos,showToast}){
 
 /* ═══════ MAIN APP ═══════ */
 function App(){
-  const[allData,setAllData]=useState(()=>{
+  const[allData,setAllDataRaw]=useState(()=>{
     try{const s=localStorage.getItem(LS_KEY);if(s)return migrateData(JSON.parse(s))}catch{}return INITIAL_DATA;
   });
+  const[loading,setLoading]=useState(true);
+  const[syncStatus,setSyncStatus]=useState('idle'); // 'idle' | 'saving' | 'saved' | 'error'
+  const saveTimerRef=useRef(null);
+
+  // Custom setter that also marks as needing sync
+  const setAllData=useCallback((newData)=>{
+    const resolved=typeof newData==='function'?newData(allData):newData;
+    setAllDataRaw(resolved);
+  },[allData]);
+
+  // Load from Supabase on mount
+  useEffect(()=>{
+    (async()=>{
+      try{
+        const{data:rows,error}=await supabase.from('escalas_medicas').select('competencia,label,schedule').order('competencia');
+        if(error)throw error;
+        if(rows&&rows.length>0){
+          const fromDB={};
+          rows.forEach(r=>{fromDB[r.competencia]={label:r.label,schedule:r.schedule||{}}});
+          setAllDataRaw(migrateData(fromDB));
+          localStorage.setItem(LS_KEY,JSON.stringify(fromDB));
+        }
+      }catch(e){console.warn('Supabase load failed, using localStorage:',e)}
+      finally{setLoading(false)}
+    })();
+  },[]);
+
+  // Save to localStorage AND Supabase (debounced)
+  useEffect(()=>{
+    try{localStorage.setItem(LS_KEY,JSON.stringify(allData))}catch(e){console.error("Erro ao salvar:",e)}
+
+    // Debounce Supabase save (wait 1.5s after last change)
+    if(saveTimerRef.current)clearTimeout(saveTimerRef.current);
+    setSyncStatus('saving');
+    saveTimerRef.current=setTimeout(async()=>{
+      try{
+        const upserts=Object.entries(allData).map(([comp,md])=>({
+          competencia:comp,
+          label:md.label,
+          schedule:md.schedule||{},
+          empresa_id:EMPRESA_ID
+        }));
+        // Also find months that were deleted
+        const{data:existing}=await supabase.from('escalas_medicas').select('competencia');
+        const currentKeys=Object.keys(allData);
+        const toDelete=(existing||[]).filter(r=>!currentKeys.includes(r.competencia)).map(r=>r.competencia);
+
+        if(upserts.length>0){
+          const{error}=await supabase.from('escalas_medicas').upsert(upserts,{onConflict:'competencia'});
+          if(error)throw error;
+        }
+        if(toDelete.length>0){
+          await supabase.from('escalas_medicas').delete().in('competencia',toDelete);
+        }
+        setSyncStatus('saved');
+        setTimeout(()=>setSyncStatus('idle'),2000);
+      }catch(e){
+        console.error('Supabase save error:',e);
+        setSyncStatus('error');
+      }
+    },1500);
+  },[allData]);
+
   const[tab,setTab]=useState("calendario");
   const[activeMonth,setActiveMonth]=useState(()=>Object.keys(allData).sort()[0]||"");
   const[selectedDay,setSelectedDay]=useState(null);
@@ -681,8 +752,6 @@ function App(){
 
   const showToast=(msg,type="info")=>{setToast({msg,type});clearTimeout(toastTimer.current);toastTimer.current=setTimeout(()=>setToast(null),2000)};
 
-  // Salva no localStorage a cada alteração
-  useEffect(()=>{try{localStorage.setItem(LS_KEY,JSON.stringify(allData))}catch(e){console.error("Erro ao salvar:",e)}},[allData]);
   useEffect(()=>{const ks=Object.keys(allData).sort();if(!ks.includes(activeMonth)&&ks.length)setActiveMonth(ks[0])},[allData]);
 
   const allMedicos=useMemo(()=>{
@@ -692,6 +761,11 @@ function App(){
   },[allData]);
 
   const mks=Object.keys(allData).sort();
+
+  if(loading)return <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',flexDirection:'column',gap:12}}>
+    <div style={{width:40,height:40,border:'3px solid #E2E8F0',borderTop:'3px solid #2563EB',borderRadius:'50%',animation:'spin 1s linear infinite'}}/>
+    <div style={{fontSize:13,color:'#94A3B8',fontWeight:600}}>Carregando escalas...</div>
+  </div>;
 
   return <div style={{maxWidth:520,margin:"0 auto",padding:"16px 12px",paddingBottom:"max(16px,env(safe-area-inset-bottom))"}}>
     {toast&&<Toast message={toast.msg} type={toast.type}/>}
@@ -704,6 +778,10 @@ function App(){
         <div style={{width:8,height:8,borderRadius:"50%",background:"#7C3AED"}}/>
       </div>
       <h1 style={{fontSize:22,fontWeight:900,letterSpacing:"-.5px",color:"#1E293B"}}>Escalas Médicas</h1>
+      {syncStatus==='saving'&&<div style={{fontSize:10,color:'#F59E0B',fontWeight:600}}>☁️ Salvando...</div>}
+      {syncStatus==='saved'&&<div style={{fontSize:10,color:'#16A34A',fontWeight:600}}>☁️ Salvo na nuvem</div>}
+      {syncStatus==='error'&&<div style={{fontSize:10,color:'#DC2626',fontWeight:600}}>⚠️ Erro ao sincronizar</div>}
+      {syncStatus==='idle'&&!loading&&<div style={{fontSize:10,color:'#94A3B8',fontWeight:600}}>☁️ Sincronizado</div>}
     </div>
 
     {/* Month selector */}
