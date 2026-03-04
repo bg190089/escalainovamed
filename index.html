@@ -81,23 +81,23 @@ const CIDADES_COLORS={
 const INITIAL_DATA={
   "2026-03":{label:"MAR 2026",schedule:{
     2:[{c:"SANTO ESTEVÃO",m:"Brenda Leite"},{c:"COITÉ",m:"Fabricia"}],
-    3:[{c:"SANTO ESTEVÃO",m:"Gustavo Oliveira"},{c:"COITÉ",m:"Fabricia"},{c:"CONCEIÇÃO DA FEIRA",m:"Marianna Pires"}],
+    3:[{c:"SANTO ESTEVÃO",m:"Gustavo Santos"},{c:"COITÉ",m:"Fabricia"},{c:"CONCEIÇÃO DA FEIRA",m:"Mariana Pires"}],
     4:[{c:"COITÉ",m:"Fabricia"},{c:"CONCEIÇÃO DA FEIRA",m:"Aline Mangabeira"}],
     6:[{c:"COITÉ",m:"Victor Porto"}],7:[{c:"COITÉ",m:"Victor Porto"}],
     10:[{c:"SERRA PRETA",m:"Mariana Pires"}],
     11:[{c:"SANTO ESTEVÃO",m:"Lucas Portela"}],12:[{c:"SANTO ESTEVÃO",m:"Lucas Portela"}],13:[{c:"SANTO ESTEVÃO",m:"Lucas Portela"}],
     14:[{c:"COITÉ",m:"Mariana Majadas"}],
-    17:[{c:"COITÉ",m:"Gustavo Oliveira"},{c:"SERRINHA",m:"Marcelo Queiroz"}],
+    17:[{c:"COITÉ",m:"Gustavo Santos"},{c:"SERRINHA",m:"Marcelo Queiroz"}],
     18:[{c:"SANTO ESTEVÃO",m:"Aline Mangabeira"},{c:"SERRINHA",m:"Marcelo Queiroz"}],
     19:[{c:"SERRINHA",m:"Lais Muhana"}],
     20:[{c:"BARROCAS",m:"Victor Porto"},{c:"SERRINHA",m:"Lais Muhana"}],
     21:[{c:"COITÉ",m:"Lais Muhana"},{c:"SERRA PRETA",m:"Mariana Majadas"},{c:"BARROCAS",m:"Victor Porto"}],
-    24:[{c:"SERRA PRETA",m:"Mariana Pires"},{c:"SERRINHA",m:"Gustavo"}],
+    24:[{c:"SERRA PRETA",m:"Mariana Pires"},{c:"SERRINHA",m:"Gustavo Santos"}],
     25:[{c:"SANTO ESTEVÃO",m:"Vitoria Castro"}],
     27:[{c:"SERRINHA",m:"Vanessa Oliveira"},{c:"CONCEIÇÃO DA FEIRA",m:"Raisa Carneiro"}],
     28:[{c:"COITÉ",m:"Jessica"}],
-    29:[{c:"SANTO ESTEVÃO",m:"Brenda Leite"}],30:[{c:"SANTO ESTEVÃO",m:"Marianna Pires"}],
-    31:[{c:"SERRINHA",m:"Gustavo"}],
+    29:[{c:"SANTO ESTEVÃO",m:"Brenda Leite"}],30:[{c:"SANTO ESTEVÃO",m:"Mariana Pires"}],
+    31:[{c:"SERRINHA",m:"Gustavo Santos"}],
   }},
   "2026-04":{label:"ABR 2026",schedule:{
     1:[{c:"SERRINHA",m:"Aline Mangabeira"}],
@@ -127,6 +127,20 @@ const getFirst=(y,m)=>new Date(y,m-1,1).getDay();
 const parseKey=k=>{const[y,m]=k.split("-").map(Number);return{year:y,month:m}};
 const makeKey=(y,m)=>`${y}-${String(m).padStart(2,"0")}`;
 const clone=o=>JSON.parse(JSON.stringify(o));
+
+// Migração: padroniza nomes inconsistentes nos dados salvos
+const NOME_FIXES={"Gustavo":"Gustavo Santos","Gustavo Oliveira":"Gustavo Santos","Marianna Pires":"Mariana Pires"};
+function migrateData(data){
+  const d=clone(data);let changed=false;
+  Object.values(d).forEach(md=>{
+    Object.values(md.schedule||{}).forEach(items=>{
+      items.forEach(item=>{
+        if(NOME_FIXES[item.m]){item.m=NOME_FIXES[item.m];changed=true}
+      });
+    });
+  });
+  return d;
+}
 
 /* ═══════ SMALL COMPONENTS ═══════ */
 function Pill({cidade,small,micro}){
@@ -655,7 +669,7 @@ function EditorView({allData,setAllData,allMedicos,showToast}){
 /* ═══════ MAIN APP ═══════ */
 function App(){
   const[allData,setAllData]=useState(()=>{
-    try{const s=localStorage.getItem(LS_KEY);if(s)return JSON.parse(s)}catch{}return INITIAL_DATA;
+    try{const s=localStorage.getItem(LS_KEY);if(s)return migrateData(JSON.parse(s))}catch{}return INITIAL_DATA;
   });
   const[tab,setTab]=useState("calendario");
   const[activeMonth,setActiveMonth]=useState(()=>Object.keys(allData).sort()[0]||"");
@@ -690,20 +704,6 @@ function App(){
         <div style={{width:8,height:8,borderRadius:"50%",background:"#7C3AED"}}/>
       </div>
       <h1 style={{fontSize:22,fontWeight:900,letterSpacing:"-.5px",color:"#1E293B"}}>Escalas Médicas</h1>
-    </div>
-
-    {/* Tab bar */}
-    <div style={{display:"flex",gap:4,marginBottom:16,background:"#FFF",borderRadius:14,padding:4,border:"1px solid #E8ECF1",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"}}>
-      {[["calendario","📅","Calendário"],["medicos","👨‍⚕️","Médicos"],["editar","✏️","Editar"]].map(([id,icon,label])=>
-        <button key={id} onClick={()=>{setTab(id);setSelectedDay(null)}} className="touch-btn" style={{
-          flex:1,padding:"10px 8px",borderRadius:10,border:"none",cursor:"pointer",
-          fontSize:12,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",gap:5,
-          transition:"all .2s",
-          background:tab===id?"#2563EB":"transparent",
-          color:tab===id?"#FFF":"#94A3B8",
-          boxShadow:tab===id?"0 2px 8px rgba(37,99,235,0.25)":"none"
-        }}><span>{icon}</span>{label}</button>
-      )}
     </div>
 
     {/* Month selector */}
@@ -744,8 +744,26 @@ function App(){
     {tab==="medicos"&&<MedicosView allData={allData} filterCidade={filterCidade} filterMedico={filterMedico}/>}
     {tab==="editar"&&<EditorView allData={allData} setAllData={setAllData} allMedicos={allMedicos} showToast={showToast}/>}
 
-    <div style={{textAlign:"center",marginTop:28,padding:"14px 0",borderTop:"1px solid #E8ECF1"}}>
+    <div style={{textAlign:"center",marginTop:28,padding:"14px 0 80px",borderTop:"1px solid #E8ECF1"}}>
       <p style={{fontSize:10,color:"#CBD5E1"}}>INOVAMED — Diagnóstico por Imagem • {new Date().getFullYear()}</p>
+    </div>
+
+    {/* Bottom Tab Bar — fixed */}
+    <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:400,background:"#FFF",borderTop:"1px solid #E2E8F0",boxShadow:"0 -2px 12px rgba(0,0,0,0.06)",paddingBottom:"max(4px,env(safe-area-inset-bottom))"}}>
+      <div style={{display:"flex",maxWidth:520,margin:"0 auto"}}>
+        {[["calendario","📅","Calendário"],["medicos","👨‍⚕️","Médicos"],["editar","✏️","Editar"]].map(([id,icon,label])=>
+          <button key={id} onClick={()=>{setTab(id);setSelectedDay(null)}} style={{
+            flex:1,padding:"8px 4px 6px",border:"none",cursor:"pointer",
+            background:"transparent",display:"flex",flexDirection:"column",alignItems:"center",gap:2,
+            transition:"all .15s",
+            color:tab===id?"#2563EB":"#94A3B8",
+          }}>
+            <span style={{fontSize:20,lineHeight:1}}>{icon}</span>
+            <span style={{fontSize:10,fontWeight:tab===id?800:600,letterSpacing:".2px"}}>{label}</span>
+            {tab===id&&<div style={{width:20,height:3,borderRadius:2,background:"#2563EB",marginTop:1}}/>}
+          </button>
+        )}
+      </div>
     </div>
   </div>;
 }
