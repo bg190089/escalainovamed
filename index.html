@@ -60,6 +60,19 @@
   /* Toast */
   .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:9999;padding:10px 20px;border-radius:12px;font-size:13px;font-weight:700;animation:slideDown .3s ease-out;pointer-events:none;color:#FFF;box-shadow:0 4px 16px rgba(0,0,0,0.15)}
 
+  /* Confirm Dialog */
+  .confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);backdrop-filter:blur(4px);z-index:9000;animation:fadeIn .15s ease-out;display:flex;align-items:center;justify-content:center}
+  .confirm-dialog{background:#FFF;border-radius:20px;padding:24px;max-width:360px;width:calc(100% - 32px);box-shadow:0 20px 60px rgba(0,0,0,0.2);animation:scaleIn .2s ease-out}
+  .confirm-title{font-size:16px;font-weight:800;color:#1E293B;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .confirm-body{font-size:13px;color:#64748B;line-height:1.6;margin-bottom:20px}
+  .confirm-body strong{color:#1E293B;font-weight:700}
+  .confirm-actions{display:flex;gap:8px}
+  .confirm-btn{flex:1;padding:12px;border-radius:12px;border:none;cursor:pointer;font-size:14px;font-weight:700;transition:all .15s}
+  .confirm-btn-cancel{background:#F1F5F9;color:#64748B}
+  .confirm-btn-cancel:hover{background:#E2E8F0}
+  .confirm-btn-ok{background:#2563EB;color:#FFF;box-shadow:0 2px 8px rgba(37,99,235,0.3)}
+  .confirm-btn-ok:hover{background:#1D4ED8}
+
   /* Cards */
   .card{background:#FFF;border-radius:16px;border:1px solid #E8ECF1;box-shadow:0 1px 3px rgba(0,0,0,0.04);padding:20px}
 </style>
@@ -169,6 +182,19 @@ function Toast({message,type}){
   return <div className="toast" style={{background:bg}}>{message}</div>;
 }
 
+function ConfirmDialog({title,children,onConfirm,onCancel}){
+  return <div className="confirm-overlay" onClick={onCancel}>
+    <div className="confirm-dialog" onClick={e=>e.stopPropagation()}>
+      <div className="confirm-title"><span>⚠️</span>{title}</div>
+      <div className="confirm-body">{children}</div>
+      <div className="confirm-actions">
+        <button className="confirm-btn confirm-btn-cancel" onClick={onCancel}>Cancelar</button>
+        <button className="confirm-btn confirm-btn-ok" onClick={onConfirm}>Confirmar</button>
+      </div>
+    </div>
+  </div>;
+}
+
 /* ═══════ AUTOCOMPLETE ═══════ */
 function AutocompleteInput({value,onChange,suggestions,placeholder,onSelect,onSubmit}){
   const[open,setOpen]=useState(false);
@@ -226,6 +252,7 @@ function AutocompleteInput({value,onChange,suggestions,placeholder,onSelect,onSu
 function useDragDrop(allData,activeMonth,setAllData,showToast){
   const[dragging,setDragging]=useState(null);
   const[dragOverDay,setDragOverDay]=useState(null);
+  const[pendingMove,setPendingMove]=useState(null);
   const ghostRef=useRef(null);
 
   const startDrag=(monthKey,day,idx,item,e)=>{
@@ -252,17 +279,30 @@ function useDragDrop(allData,activeMonth,setAllData,showToast){
   const endDrag=useCallback(()=>{
     if(ghostRef.current){ghostRef.current.remove();ghostRef.current=null}
     if(dragging&&dragOverDay!==null&&(dragging.day!==dragOverDay||dragging.monthKey!==activeMonth)){
-      const nd=clone(allData);
-      nd[dragging.monthKey].schedule[dragging.day].splice(dragging.idx,1);
-      if(!nd[dragging.monthKey].schedule[dragging.day].length)delete nd[dragging.monthKey].schedule[dragging.day];
-      if(!nd[activeMonth].schedule[dragOverDay])nd[activeMonth].schedule[dragOverDay]=[];
-      if(!nd[activeMonth].schedule[dragOverDay].some(i=>i.c===dragging.item.c&&i.m===dragging.item.m)){
-        nd[activeMonth].schedule[dragOverDay].push({...dragging.item});
-        setAllData(nd);showToast(`Movido para dia ${dragOverDay}`,"success");
-      }else{showToast("Já existe neste dia","error")}
+      // Store pending move — will require user confirmation
+      setPendingMove({
+        fromMonthKey:dragging.monthKey,fromDay:dragging.day,fromIdx:dragging.idx,
+        item:dragging.item,toMonthKey:activeMonth,toDay:dragOverDay
+      });
     }
     setDragging(null);setDragOverDay(null);
   },[dragging,dragOverDay,allData,activeMonth]);
+
+  const confirmMove=useCallback(()=>{
+    if(!pendingMove)return;
+    const{fromMonthKey,fromDay,fromIdx,item,toMonthKey,toDay}=pendingMove;
+    const nd=clone(allData);
+    nd[fromMonthKey].schedule[fromDay].splice(fromIdx,1);
+    if(!nd[fromMonthKey].schedule[fromDay].length)delete nd[fromMonthKey].schedule[fromDay];
+    if(!nd[toMonthKey].schedule[toDay])nd[toMonthKey].schedule[toDay]=[];
+    if(!nd[toMonthKey].schedule[toDay].some(i=>i.c===item.c&&i.m===item.m)){
+      nd[toMonthKey].schedule[toDay].push({...item});
+      setAllData(nd);showToast(`Movido para dia ${toDay}`,"success");
+    }else{showToast("Já existe neste dia","error")}
+    setPendingMove(null);
+  },[pendingMove,allData]);
+
+  const cancelMove=useCallback(()=>{setPendingMove(null)},[]);
 
   useEffect(()=>{
     if(!dragging)return;
@@ -271,7 +311,7 @@ function useDragDrop(allData,activeMonth,setAllData,showToast){
     return()=>{document.removeEventListener("mousemove",onMove);document.removeEventListener("mouseup",endDrag);document.removeEventListener("touchmove",onMove);document.removeEventListener("touchend",endDrag);document.removeEventListener("touchcancel",endDrag)};
   },[dragging,onMove,endDrag]);
 
-  return{dragging,dragOverDay,startDrag};
+  return{dragging,dragOverDay,startDrag,pendingMove,confirmMove,cancelMove};
 }
 
 /* ═══════ CALENDAR ═══════ */
@@ -280,7 +320,7 @@ function CalendarView({monthKey,data,allData,setAllData,selectedDay,onDayClick,f
   const days=getDays(year,month);
   const first=getFirst(year,month);
   const sch=data.schedule||{};
-  const{dragging,dragOverDay,startDrag}=useDragDrop(allData,activeMonth,setAllData,showToast);
+  const{dragging,dragOverDay,startDrag,pendingMove,confirmMove,cancelMove}=useDragDrop(allData,activeMonth,setAllData,showToast);
 
   const cells=[];
   for(let i=0;i<first;i++)cells.push(null);
@@ -381,6 +421,11 @@ function CalendarView({monthKey,data,allData,setAllData,selectedDay,onDayClick,f
       monthKey={monthKey} data={data} allData={allData} setAllData={setAllData}
       onClose={()=>onDayClick(null)} showToast={showToast}
     />}
+
+    {/* Confirm move dialog */}
+    {pendingMove&&<ConfirmDialog title="Confirmar Movimentação" onConfirm={confirmMove} onCancel={cancelMove}>
+      Tem certeza que deseja mover <strong>{pendingMove.item.m}</strong> ({pendingMove.item.c}) do <strong>dia {pendingMove.fromDay}</strong> para o <strong>dia {pendingMove.toDay}</strong>?
+    </ConfirmDialog>}
   </div>;
 }
 
@@ -504,6 +549,9 @@ function EditorView({allData,setAllData,allMedicos,showToast}){
   const[editEntryMedico,setEditEntryMedico]=useState("");
   const[editEntryCidade,setEditEntryCidade]=useState("");
   const jsonRef=useRef(null);
+  const[renameSel,setRenameSel]=useState("");
+  const[renameNew,setRenameNew]=useState("");
+  const[showRenameConfirm,setShowRenameConfirm]=useState(false);
 
   const IS={padding:"10px 14px",borderRadius:10,border:"1px solid #D1D5DB",background:"#FFF",color:"#1E293B",fontSize:14,outline:"none",width:"100%"};
   const BS={padding:"10px 18px",borderRadius:10,border:"none",cursor:"pointer",fontSize:13,fontWeight:700,transition:"all .15s"};
@@ -561,6 +609,21 @@ function EditorView({allData,setAllData,allMedicos,showToast}){
     const r=new FileReader();
     r.onload=()=>{try{setAllData(JSON.parse(r.result));showToast("Importado!","success")}catch{showToast("JSON inválido","error")}};
     r.readAsText(file);e.target.value="";
+  };
+
+  const doRename=()=>{
+    if(!renameSel||!renameNew.trim()||renameSel===renameNew.trim()){setShowRenameConfirm(false);return}
+    const newName=renameNew.trim();
+    const nd=clone(allData);let count=0;
+    Object.values(nd).forEach(md=>{
+      Object.values(md.schedule||{}).forEach(items=>{
+        items.forEach(item=>{
+          if(item.m===renameSel){item.m=newName;count++}
+        });
+      });
+    });
+    setAllData(nd);setRenameSel("");setRenameNew("");setShowRenameConfirm(false);
+    showToast(`"${renameSel}" renomeado para "${newName}" (${count} ocorrências)`,"success");
   };
 
   const mks=Object.keys(allData).sort();
@@ -630,7 +693,7 @@ function EditorView({allData,setAllData,allMedicos,showToast}){
       {sortDays.map(day=>{
         const{year:py,month:pm}=parseKey(editMonth);
         const dn=WEEKDAYS_FULL[new Date(py,pm-1,day).getDay()];
-        return <div key={day} style={{marginBottom:12}}>
+        return <div key={day� style={{marginBottom:12}}>
           <div style={{fontSize:11,fontWeight:800,color:"#94A3B8",marginBottom:6,display:"flex",alignItems:"center",gap:6}}>
             <span style={{background:"#EFF6FF",color:"#2563EB",padding:"2px 8px",borderRadius:6,fontWeight:800}}>DIA {day}</span>
             <span style={{color:"#CBD5E1"}}>{dn}</span>
@@ -665,6 +728,37 @@ function EditorView({allData,setAllData,allMedicos,showToast}){
         </div>;
       })}
     </div>
+
+    {/* Rename Professional */}
+    <div className="card" style={{marginBottom:14}}>
+      <h3 style={{fontSize:15,fontWeight:800,marginBottom:14,display:"flex",alignItems:"center",gap:8,color:"#1E293B"}}>
+        <span style={{fontSize:18}}>✏️</span>Renomear Profissional
+      </h3>
+      <p style={{fontSize:12,color:"#94A3B8",marginBottom:12,lineHeight:1.5}}>Altere o nome de um profissional em todas as escalas de todos os meses.</p>
+      <div style={{marginBottom:10}}>
+        <label style={{fontSize:11,color:"#94A3B8",fontWeight:700,display:"block",marginBottom:4}}>PROFISSIONAL ATUAL</label>
+        <select value={renameSel} onChange={e=>{setRenameSel(e.target.value);setRenameNew(e.target.value)}} style={IS}>
+          <option value="">Selecione...</option>
+          {allMedicos.map(m=><option key={m} value={m}>{m}</option>)}
+        </select>
+      </div>
+      {renameSel&&<>
+        <div style={{marginBottom:14}}>
+          <label style={{fontSize:11,color:"#94A3B8",fontWeight:700,display:"block",marginBottom:4}}>NOVO NOME</label>
+          <input type="text" value={renameNew} onChange={e=>setRenameNew(e.target.value)} placeholder="Digite o novo nome..." style={IS}/>
+        </div>
+        <button onClick={()=>{
+          if(!renameNew.trim()||renameSel===renameNew.trim()){showToast("Digite um nome diferente","error");return}
+          setShowRenameConfirm(true);
+        }} className="touch-btn" style={{...BS,background:"#2563EB",color:"#FFF",width:"100%",fontSize:14,boxShadow:"0 2px 8px rgba(37,99,235,0.25)"}}>
+          Renomear em Todas as Escalas
+        </button>
+      </>}
+    </div>
+
+    {showRenameConfirm&&<ConfirmDialog title="Confirmar Renomeação" onConfirm={doRename} onCancel={()=>setShowRenameConfirm(false)}>
+      Tem certeza que deseja renomear <strong>{renameSel}</strong> para <strong>{renameNew.trim()}</strong> em todas as escalas de todos os meses?
+    </ConfirmDialog>}
 
     {/* Export/Import */}
     <div style={{display:"flex",gap:8}}>
