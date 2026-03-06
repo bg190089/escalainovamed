@@ -90,7 +90,7 @@ const supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 
 const LS_KEY="inovamed_v3"; // chave fixa — nunca muda entre versoes
 
-const CIDADES_COLORS={
+const DEFAULT_CIDADES_COLORS={
   "SANTO ESTEVÃO":{bg:"#2563EB",light:"#DBEAFE"},
   "COITÉ":{bg:"#7C3AED",light:"#EDE9FE"},
   "SERRA PRETA":{bg:"#059669",light:"#D1FAE5"},
@@ -98,6 +98,26 @@ const CIDADES_COLORS={
   "SERRINHA":{bg:"#DC2626",light:"#FEE2E2"},
   "CONCEIÇÃO DA FEIRA":{bg:"#0891B2",light:"#CFFAFE"},
 };
+const LS_CIDADES_KEY="inovamed_cidades_v1";
+function loadCidades(){try{const s=localStorage.getItem(LS_CIDADES_KEY);if(s)return JSON.parse(s)}catch{}return DEFAULT_CIDADES_COLORS}
+function saveCidades(c){try{localStorage.setItem(LS_CIDADES_KEY,JSON.stringify(c))}catch(e){console.error("Erro ao salvar cidades:",e)}}
+// Predefined color palette for new cities
+const COLOR_PALETTE=[
+  {bg:"#2563EB",light:"#DBEAFE",name:"Azul"},
+  {bg:"#7C3AED",light:"#EDE9FE",name:"Roxo"},
+  {bg:"#059669",light:"#D1FAE5",name:"Verde"},
+  {bg:"#D97706",light:"#FEF3C7",name:"Amarelo"},
+  {bg:"#DC2626",light:"#FEE2E2",name:"Vermelho"},
+  {bg:"#0891B2",light:"#CFFAFE",name:"Ciano"},
+  {bg:"#DB2777",light:"#FCE7F3",name:"Rosa"},
+  {bg:"#EA580C",light:"#FED7AA",name:"Laranja"},
+  {bg:"#4F46E5",light:"#E0E7FF",name:"Índigo"},
+  {bg:"#0D9488",light:"#CCFBF1",name:"Teal"},
+  {bg:"#65A30D",light:"#ECFCCB",name:"Lima"},
+  {bg:"#9333EA",light:"#F3E8FF",name:"Violeta"},
+];
+// Global mutable reference (will be replaced by state in App)
+let CIDADES_COLORS=loadCidades();
 
 const INITIAL_DATA={
   "2026-03":{label:"MAR 2026",schedule:{
@@ -537,7 +557,7 @@ function MedicosView({allData,filterCidade,filterMedico}){
 }
 
 /* ═══════ EDITOR ═══════ */
-function EditorView({allData,setAllData,allMedicos,showToast}){
+function EditorView({allData,setAllData,allMedicos,showToast,cidadesColors,setCidadesColors}){
   const[editMonth,setEditMonth]=useState(Object.keys(allData).sort()[0]||"");
   const[editDay,setEditDay]=useState("");
   const[editCidade,setEditCidade]=useState(Object.keys(CIDADES_COLORS)[0]);
@@ -552,6 +572,9 @@ function EditorView({allData,setAllData,allMedicos,showToast}){
   const[renameSel,setRenameSel]=useState("");
   const[renameNew,setRenameNew]=useState("");
   const[showRenameConfirm,setShowRenameConfirm]=useState(false);
+  const[newCidadeNome,setNewCidadeNome]=useState("");
+  const[newCidadeCor,setNewCidadeCor]=useState(COLOR_PALETTE[0].bg);
+  const[removeCidadeConfirm,setRemoveCidadeConfirm]=useState(null);
 
   const IS={padding:"10px 14px",borderRadius:10,border:"1px solid #D1D5DB",background:"#FFF",color:"#1E293B",fontSize:14,outline:"none",width:"100%"};
   const BS={padding:"10px 18px",borderRadius:10,border:"none",cursor:"pointer",fontSize:13,fontWeight:700,transition:"all .15s"};
@@ -693,7 +716,7 @@ function EditorView({allData,setAllData,allMedicos,showToast}){
       {sortDays.map(day=>{
         const{year:py,month:pm}=parseKey(editMonth);
         const dn=WEEKDAYS_FULL[new Date(py,pm-1,day).getDay()];
-        return <div key={day� style={{marginBottom:12}}>
+        return <div key={day} style={{marginBottom:12}}>
           <div style={{fontSize:11,fontWeight:800,color:"#94A3B8",marginBottom:6,display:"flex",alignItems:"center",gap:6}}>
             <span style={{background:"#EFF6FF",color:"#2563EB",padding:"2px 8px",borderRadius:6,fontWeight:800}}>DIA {day}</span>
             <span style={{color:"#CBD5E1"}}>{dn}</span>
@@ -758,6 +781,58 @@ function EditorView({allData,setAllData,allMedicos,showToast}){
 
     {showRenameConfirm&&<ConfirmDialog title="Confirmar Renomeação" onConfirm={doRename} onCancel={()=>setShowRenameConfirm(false)}>
       Tem certeza que deseja renomear <strong>{renameSel}</strong> para <strong>{renameNew.trim()}</strong> em todas as escalas de todos os meses?
+    </ConfirmDialog>}
+
+    {/* Manage Cities */}
+    <div className="card" style={{marginBottom:14}}>
+      <h3 style={{fontSize:15,fontWeight:800,marginBottom:14,display:"flex",alignItems:"center",gap:8,color:"#1E293B"}}>
+        <span style={{fontSize:18}}>🏙️</span>Gerenciar Municípios
+      </h3>
+      <p style={{fontSize:12,color:"#94A3B8",marginBottom:12,lineHeight:1.5}}>Adicione novos municípios ou remova existentes. As cores aparecem no calendário e filtros.</p>
+
+      {/* Current cities list */}
+      <div style={{marginBottom:14}}>
+        {Object.entries(cidadesColors||CIDADES_COLORS).map(([nome,cores])=><div key={nome} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 10px",background:"#F8FAFC",borderRadius:8,marginBottom:4,borderLeft:`3px solid ${cores.bg}`}}>
+          <div style={{width:14,height:14,borderRadius:4,background:cores.bg,flexShrink:0}}/>
+          <span style={{flex:1,fontSize:12,fontWeight:600,color:"#334155"}}>{nome}</span>
+          <button onClick={()=>setRemoveCidadeConfirm(nome)} style={{background:"none",border:"none",color:"#DC2626",cursor:"pointer",fontSize:14,padding:"2px 6px",lineHeight:1}}>×</button>
+        </div>)}
+      </div>
+
+      {/* Add new city form */}
+      <div style={{borderTop:"1px solid #F1F5F9",paddingTop:12}}>
+        <label style={{fontSize:11,color:"#94A3B8",fontWeight:700,display:"block",marginBottom:4}}>NOVO MUNICÍPIO</label>
+        <input type="text" value={newCidadeNome} onChange={e=>setNewCidadeNome(e.target.value.toUpperCase())} placeholder="Ex: FEIRA DE SANTANA" style={IS}/>
+        <label style={{fontSize:11,color:"#94A3B8",fontWeight:700,display:"block",marginTop:10,marginBottom:6}}>COR</label>
+        <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:12}}>
+          {COLOR_PALETTE.map(p=><button key={p.bg} onClick={()=>setNewCidadeCor(p.bg)} title={p.name} style={{
+            width:28,height:28,borderRadius:8,background:p.bg,border:newCidadeCor===p.bg?"3px solid #1E293B":"2px solid transparent",
+            cursor:"pointer",transition:"all .15s",boxShadow:newCidadeCor===p.bg?"0 2px 8px rgba(0,0,0,0.2)":"none"
+          }}/>)}
+        </div>
+        <button onClick={()=>{
+          const nome=newCidadeNome.trim();
+          if(!nome){showToast("Digite o nome do município","error");return}
+          if((cidadesColors||CIDADES_COLORS)[nome]){showToast("Município já existe","error");return}
+          const paleta=COLOR_PALETTE.find(p=>p.bg===newCidadeCor)||COLOR_PALETTE[0];
+          const updated={...(cidadesColors||CIDADES_COLORS),[nome]:{bg:paleta.bg,light:paleta.light}};
+          setCidadesColors(updated);
+          setNewCidadeNome("");
+          showToast(`Município "${nome}" adicionado!`,"success");
+        }} className="touch-btn" style={{...BS,background:"#16A34A",color:"#FFF",width:"100%",fontSize:14,boxShadow:"0 2px 8px rgba(22,163,74,0.25)"}}>
+          + Adicionar Município
+        </button>
+      </div>
+    </div>
+
+    {removeCidadeConfirm&&<ConfirmDialog title="Remover Município" onConfirm={()=>{
+      const updated={...(cidadesColors||CIDADES_COLORS)};
+      delete updated[removeCidadeConfirm];
+      setCidadesColors(updated);
+      setRemoveCidadeConfirm(null);
+      showToast(`Município "${removeCidadeConfirm}" removido`,"success");
+    }} onCancel={()=>setRemoveCidadeConfirm(null)}>
+      Tem certeza que deseja remover o município <strong>{removeCidadeConfirm}</strong>? Os atendimentos já registrados com este município continuarão existindo, mas sem cor definida.
     </ConfirmDialog>}
 
     {/* Export/Import */}
@@ -836,6 +911,14 @@ function App(){
     },1500);
   },[allData]);
 
+  const[cidadesColors,setCidadesColorsRaw]=useState(()=>loadCidades());
+  const setCidadesColors=useCallback((newC)=>{
+    const resolved=typeof newC==='function'?newC(cidadesColors):newC;
+    setCidadesColorsRaw(resolved);
+    CIDADES_COLORS=resolved;
+    saveCidades(resolved);
+  },[cidadesColors]);
+
   const[tab,setTab]=useState("calendario");
   const[activeMonth,setActiveMonth]=useState(()=>Object.keys(allData).sort()[0]||"");
   const[selectedDay,setSelectedDay]=useState(null);
@@ -894,10 +977,10 @@ function App(){
     {(tab==="calendario"||tab==="medicos")&&<div style={{marginBottom:14}}>
       <div style={{display:"flex",flexWrap:"wrap",gap:4,marginBottom:8}}>
         <button onClick={()=>{setFilterCidade(null);setFilterMedico(null)}} style={{padding:"5px 10px",borderRadius:20,border:"1px solid #E2E8F0",cursor:"pointer",fontSize:10,fontWeight:700,background:!filterCidade&&!filterMedico?"#1E293B":"#FFF",color:!filterCidade&&!filterMedico?"#FFF":"#94A3B8"}}>TODOS</button>
-        {Object.entries(CIDADES_COLORS).map(([c,colors])=><button key={c} onClick={()=>{setFilterCidade(filterCidade===c?null:c);setFilterMedico(null)}} style={{padding:"5px 10px",borderRadius:20,border:"none",cursor:"pointer",fontSize:9,fontWeight:700,background:filterCidade===c?colors.bg:colors.light,color:filterCidade===c?"#FFF":colors.bg}}>{c}</button>)}
+        {Object.entries(cidadesColors).map(([c,colors])=><button key={c} onClick={()=>{setFilterCidade(filterCidade===c?null:c);setFilterMedico(null)}} style={{padding:"5px 10px",borderRadius:20,border:"none",cursor:"pointer",fontSize:9,fontWeight:700,background:filterCidade===c?colors.bg:colors.light,color:filterCidade===c?"#FFF":colors.bg}}>{c}</button>)}
       </div>
       <div style={{display:"flex",flexWrap:"wrap",gap:3}}>
-        {allMedicos.map(m=><button key={m} onClick={()=>{setFilterMedico(filterMedico===m?null:m);setFilterCidade(null)}} style={{padding:"3px 8px",borderRadius:12,border:`1px solid ${filterMedico===m?"#2563EB":"#E2E8F0"}`,cursor:"pointer",fontSize:9,fontWeight:600,background:filterMedico===m?"#DBEAFE":"#FFF",color:filterMedico===m?"#2563EB":"#94A3B8"}}>{m}</button>)}
+        {allMedicos.map(m=><button key={m} onClick={()=>{setFilterMedico(filterMedico===m?null:m);setFilterCidade(null)}} style={{padding:"3px 8px",borderRadius:12,border:`1px solid ${filterMedico===m?"#2563EB":"#E2E8F0"}`,cursor:"pointer",fontSize:9,fontWeight:600,background:filterMedico===m?"#DDEAFE":"#FFF",color:filterMedico===m?"#2563EB":"#94A3B8"}}>{m}</button>)}
       </div>
     </div>}
 
@@ -914,7 +997,7 @@ function App(){
       showToast={showToast} activeMonth={activeMonth}
     />}
     {tab==="medicos"&&<MedicosView allData={allData} filterCidade={filterCidade} filterMedico={filterMedico}/>}
-    {tab==="editar"&&<EditorView allData={allData} setAllData={setAllData} allMedicos={allMedicos} showToast={showToast}/>}
+    {tab==="editar"&&<EditorView allData={allData} setAllData={setAllData} allMedicos={allMedicos} showToast={showToast} cidadesColors={cidadesColors} setCidadesColors={setCidadesColors}/>}
 
     <div style={{textAlign:"center",marginTop:28,padding:"14px 0 80px",borderTop:"1px solid #E8ECF1"}}>
       <p style={{fontSize:10,color:"#CBD5E1"}}>INOVAMED — Diagnóstico por Imagem • {new Date().getFullYear()}</p>
