@@ -99,8 +99,61 @@ const DEFAULT_CIDADES_COLORS={
   "CONCEIÇÃO DA FEIRA":{bg:"#0891B2",light:"#CFFAFE"},
 };
 const LS_CIDADES_KEY="inovamed_cidades_v1";
-function loadCidades(){try{const s=localStorage.getItem(LS_CIDADES_KEY);if(s)return JSON.parse(s)}catch{}return DEFAULT_CIDADES_COLORS}
-function saveCidades(c){try{localStorage.setItem(LS_CIDADES_KEY,JSON.stringify(c))}catch(e){console.error("Erro ao salvar cidades:",e)}}
+function loadCidadesLocal(){try{const s=localStorage.getItem(LS_CIDADES_KEY);if(s)return JSON.parse(s)}catch{}return DEFAULT_CIDADES_COLORS}
+function saveCidadesLocal(c){try{localStorage.setItem(LS_CIDADES_KEY,JSON.stringify(c))}catch(e){console.error("Erro ao salvar cidades:",e)}}
+
+// Sync municipios to/from Supabase
+async function loadCidadesFromDB(){
+  try{
+    const{data:rows,error}=await supabase.from('municipios_cores').select('nome,cor_bg,cor_light').eq('empresa_id',EMPRESA_ID);
+    if(error)throw error;
+    if(rows&&rows.length>0){
+      const fromDB={};
+      rows.forEach(r=>{fromDB[r.nome]={bg:r.cor_bg,light:r.cor_light}});
+      saveCidadesLocal(fromDB);
+      return fromDB;
+    }
+  }catch(e){console.warn('Supabase municipios load failed:',e)}
+  return null;
+}
+
+async function saveCidadesToDB(cidadesObj){
+  try{
+    const upserts=Object.entries(cidadesObj).map(([nome,cores])=>({
+      nome,cor_bg:cores.bg,cor_light:cores.light,empresa_id:EMPRESA_ID,updated_at:new Date().toISOString()
+    }));
+    // Find municipalities to delete
+    const{data:existing}=await supabase.from('municipios_cores').select('nome').eq('empresa_id',EMPRESA_ID);
+    const currentNames=Object.keys(cidadesObj);
+    const toDelete=(existing||[]).filter(r=>!currentNames.includes(r.nome)).map(r=>r.nome);
+    if(upserts.length>0){
+      const{error}=await supabase.from('municipios_cores').upsert(upserts,{onConflict:'nome,empresa_id'});
+      if(error)throw error;
+    }
+    if(toDelete.length>0){
+      await supabase.from('municipios_cores').delete().in('nome',toDelete).eq('empresa_id',EMPRESA_ID);
+    }
+    return true;
+  }catch(e){console.error('Supabase municipios save error:',e);return false}
+}
+
+// Extract municipalities from schedule data as safety net
+function extractCidadesFromData(allData,existing){
+  const found={...existing};
+  let usedIdx=Object.keys(found).length;
+  Object.values(allData).forEach(month=>{
+    Object.values(month.schedule||{}).forEach(dayItems=>{
+      (Array.isArray(dayItems)?dayItems:[]).forEach(item=>{
+        if(item.c&&!found[item.c]){
+          const paleta=COLOR_PALETTE[usedIdx%COLOR_PALETTE.length];
+          found[item.c]={bg:paleta.bg,light:paleta.light};
+          usedIdx++;
+        }
+      });
+    });
+  });
+  return found;
+}
 // Predefined color palette for new cities
 const COLOR_PALETTE=[
   {bg:"#2563EB",light:"#DBEAFE",name:"Azul"},
@@ -117,7 +170,7 @@ const COLOR_PALETTE=[
   {bg:"#9333EA",light:"#F3E8FF",name:"Violeta"},
 ];
 // Global mutable reference (will be replaced by state in App)
-let CIDADES_COLORS=loadCidades();
+let CIDADES_COLORS=loadCidadesLocal();
 
 const INITIAL_DATA={
   "2026-03":{label:"MAR 2026",schedule:{
@@ -858,19 +911,36 @@ function App(){
     setAllDataRaw(resolved);
   },[allData]);
 
-  // Load from Supabase on mount
+  // Load from Supabase on mount (escalas + municipios)
   useEffect(()=>{
     (async()=>{
+      let loadedData=null;
       try{
         const{data:rows,error}=await supabase.from('escalas_medicas').select('competencia,label,schedule').order('competencia');
         if(error)throw error;
         if(rows&&rows.length>0){
           const fromDB={};
           rows.forEach(r=>{fromDB[r.competencia]={label:r.label,schedule:r.schedule||{}}});
-          setAllDataRaw(migrateData(fromDB));
+          loadedData=migrateData(fromDB);
+          setAllDataRaw(loadedData);
           localStorage.setItem(LS_KEY,JSON.stringify(fromDB));
         }
       }catch(e){console.warn('Supabase load failed, using localStorage:',e)}
+      // Load municipios from Supabase
+      try{
+        const dbCidades=await loadCidadesFromDB();
+        const baseData=loadedData||allData;
+        // Merge: DB municipalities + any found in schedule data but missing from DB
+        const baseCidades=dbCidades||loadCidadesLocal();
+        const merged=extractCidadesFromData(baseData,baseCidades);
+        setCidadesColorsRaw(merged);
+        CIDADES_COLORS=merged;
+        saveCidadesLocal(merged);
+        // If we found new municipalities from schedule data, save them to DB too
+        if(Object.keys(merged).length>Object.keys(baseCidades).length){
+          saveCidadesToDB(merged);
+        }
+      }catch(e){console.warn('Municipios sync error:',e)}
       finally{setLoading(false)}
     })();
   },[]);
@@ -911,12 +981,16 @@ function App(){
     },1500);
   },[allData]);
 
-  const[cidadesColors,setCidadesColorsRaw]=useState(()=>loadCidades());
+  const[cidadesColors,setCidadesColorsRaw]=useState(()=>loadCidadesLocal());
+  const cidadesSaveTimerRef=useRef(null);
   const setCidadesColors=useCallback((newC)=>{
     const resolved=typeof newC==='function'?newC(cidadesColors):newC;
     setCidadesColorsRaw(resolved);
     CIDADES_COLORS=resolved;
-    saveCidades(resolved);
+    saveCidadesLocal(resolved);
+    // Debounced save to Supabase
+    if(cidadesSaveTimerRef.current)clearTimeout(cidadesSaveTimerRef.current);
+    cidadesSaveTimerRef.current=setTimeout(()=>saveCidadesToDB(resolved),1000);
   },[cidadesColors]);
 
   const[tab,setTab]=useState("calendario");
